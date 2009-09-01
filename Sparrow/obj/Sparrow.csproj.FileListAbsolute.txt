@@ -33,3 +33,5 @@ u:\Repository\Software\C Sharp\Programs\Sparrow\Sparrow\bin\Debug\GraphControl.d
 u:\Repository\Software\C Sharp\Programs\Sparrow\Sparrow\bin\Debug\NationalInstruments.Common.Native.dll
 u:\Repository\Software\C Sharp\Programs\Sparrow\Sparrow\bin\Debug\GraphControl.pdb
 u:\Repository\Software\C Sharp\Programs\Sparrow\Sparrow\bin\Debug\Sparrow.exe.config
+u:\Repository\Software\C Sharp\Programs\Sparrow\Sparrow\bin\Debug\NationalInstruments.DAQmx.dll
+u:\Repository\Software\C Sharp\Programs\Sparrow\Sparrow\bin\Debug\NationalInstruments.DAQmx.xml
