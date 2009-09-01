@@ -14,12 +14,13 @@ using MathNet.Numerics.Transformations;
 
 namespace Sparrow
 {
-    public enum AmpUnits { dBm, V };
+    public enum AmpUnits { dBm, dBmV, V };
 
     public partial class Sparrow : Form
     {
         private AnalogSingleChannelReader analogInReader;
         private AsyncCallback analogCallback;
+        private IAsyncResult iAsyncResultObj; 
 
         private NI6251_Options ni6251OptionsObj;
         private Sparrow_Options sparrowOptionsObj;
@@ -47,7 +48,13 @@ namespace Sparrow
         double[] fArrBroad;
         double[] fArrNarrow;
 
+        int samplesPerChannel;
+        int fSampleRateFast;
         double fSampleRateSlow;
+
+        private bool aquireData = false;
+        
+        private double [] maxBroadArr = new double[3]{-1E8, -1E8, -1E8};
 
         public Sparrow()
         {
@@ -57,74 +64,121 @@ namespace Sparrow
             rftObj = new RealFourierTransformation(TransformationConvention.Matlab);                    
             ni6251OptionsObj = new NI6251_Options();
             sparrowOptionsObj = new Sparrow_Options();
+            UpdateAmpUnitLabels();
         }
 
         private void AnalogInCallback(IAsyncResult ar)
         {
             try
             {
+                // Get the waveform object
                 ch1WaveformFast = analogInReader.EndReadWaveform(ar);
-
-                ch1VFast_t = ch1WaveformFast.GetScaledData();      // selected channel waveform as a fuction of time in (Volts)
+                ch1VFast_t = ch1WaveformFast.GetScaledData();      // get array of doubles the values in Volts
 
                 // FFT the data
                 rftObj.TransformForward(ch1VFast_t, out ch1RealBroad_f, out ch1ImagBroad_f);
-                // plot the modulous
-                ch1ModBroad_f = GetModulous(ch1RealBroad_f, ch1ImagBroad_f, sparrowOptionsObj.BroadAmpUnits);
+                // find the modulous of the data
+                ch1ModBroad_f = GetModulous(ch1RealBroad_f, ch1ImagBroad_f, sparrowOptionsObj.BroadAmpUnits, 1);
 
+                UpdateMax123();
+
+                // update the slower time series with the new points
                 UpdateSlowTimeSeries();
                 // FFT the slow time data
                 rftObj.TransformForward(ch1Vslow_t, out ch1RealNarrow_f, out ch1ImagNarrow_f);
-                ch1ModNarrow_f = GetModulous(ch1RealNarrow_f, ch1ImagNarrow_f, sparrowOptionsObj.NarrowAmpUnits);
+                ch1ModNarrow_f = GetModulous(ch1RealNarrow_f, ch1ImagNarrow_f, sparrowOptionsObj.NarrowAmpUnits, 2);
                 
                 // create slower waveform by averaging each half of the sampled signal
                 fastTimeGraph.Plot("axis1", tArrFast, ch1VFast_t, Color.Blue);
                 broadFreqGraph.Plot("axis2", fArrBroad, ch1ModBroad_f, Color.Red);
                 slowTimeGraph.Plot("axis3", tArrSlow, ch1Vslow_t, Color.Blue);
                 narrowFreqGraph.Plot("axis4", fArrNarrow, ch1ModNarrow_f, Color.Red);
-
-                analogInReader.BeginReadWaveform(ni6251OptionsObj.SamplesPerChannel, AnalogInCallback, ni6251OptionsObj.TaskObj);
+                
+                // keep the aquisition running
+                if (aquireData == true)
+                    iAsyncResultObj = analogInReader.BeginReadWaveform(samplesPerChannel, AnalogInCallback, ni6251OptionsObj.TaskObj);
             }
 
             catch (DaqException ex)
             {
-                // throw the exception
-                MessageBox.Show(ex.Message);
+                StopAquire();
+                
+
+                switch (ex.Error)
+                {
+                    case -200279:
+                        //underread error, restart
+                        StartAquire();
+                        break;
+
+                    default:
+                        MessageBox.Show(ex.Message);
+                        StartAquire();
+                        break;
+                }                
             }
         }
 
         private void nI6251ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            //NI6251_Options ni6251OptionsObj = new NI6251_Options();
+            StopAquire();
             
-            if(ni6251OptionsObj.ShowDialog() == DialogResult.OK)
-            {
-                //analogInReader.EndReadWaveform(); // terminate the current read
-                TakeData();     // restart the data acquistion
-            }
+            // We dont' care what changed
+            ni6251OptionsObj.ShowDialog();
+            
+            StartAquire();     // restart the data acquistion
+            
         }
 
-        private void TakeData()
+        private void viewToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            // create the time and frequencie arrays
-            // create a time series for the sampling positions
-            tArrFast = CreateTimeArr(ni6251OptionsObj.Rate, ni6251OptionsObj.SamplesPerChannel);
-            fArrBroad = rftObj.GenerateFrequencyScale(ni6251OptionsObj.Rate, ni6251OptionsObj.SamplesPerChannel);
+            StopAquire();
+
+            sparrowOptionsObj.ShowDialog();
+
+            StartAquire();
+        }
+
+        private void StartAquire()
+        {
+            // stop any already running aquisitions
+            ni6251OptionsObj.TaskObj.Control(TaskAction.Stop);
+
+            // save the rate and the # of samples per channel in case user opens dialog box
+            samplesPerChannel = ni6251OptionsObj.SamplesPerChannel;
+            fSampleRateFast = ni6251OptionsObj.Rate;
+            UpdateAmpUnitLabels();
+
+            // create the time and frequency arrays
+            tArrFast = CreateTimeArr(fSampleRateFast, samplesPerChannel);
+            fArrBroad = rftObj.GenerateFrequencyScale(fSampleRateFast, samplesPerChannel);
             // the slow sampling rate
-            fSampleRateSlow = ni6251OptionsObj.Rate * 2 / ni6251OptionsObj.SamplesPerChannel;
+            fSampleRateSlow = fSampleRateFast * 2 / samplesPerChannel;
             
-            // the time array for the slow sampling
+            // create time and frequency arrays for slow sampling
             tArrSlow = CreateTimeArr(fSampleRateSlow, sparrowOptionsObj.NumSlowTimePoints);
             fArrNarrow = rftObj.GenerateFrequencyScale(fSampleRateSlow, sparrowOptionsObj.NumSlowTimePoints);
+            // allocate memory for slow sampling time array
             ch1Vslow_t = new double[sparrowOptionsObj.NumSlowTimePoints];
             halfLen = ni6251OptionsObj.SamplesPerChannel / 2;
+            // reset the slow index index could be anywhere
+            ch1SlowIndex = 0;
 
-            // all the calls to start data aquisition
+            // Setup the NI-DAQ for the configured task and start aquisition to the analogCallback
             analogInReader = new AnalogSingleChannelReader(ni6251OptionsObj.TaskObj.Stream);
             analogCallback = new AsyncCallback(AnalogInCallback);
 
             analogInReader.SynchronizeCallbacks = true;
-            analogInReader.BeginReadWaveform(ni6251OptionsObj.SamplesPerChannel, analogCallback, ni6251OptionsObj.TaskObj);  
+            iAsyncResultObj = analogInReader.BeginReadWaveform(ni6251OptionsObj.SamplesPerChannel, analogCallback, ni6251OptionsObj.TaskObj);
+            
+            aquireData = true;
+        }
+
+        private void StopAquire()
+        {
+            aquireData = false;
+            // spin for operation to complete
+            iAsyncResultObj.AsyncWaitHandle.WaitOne();           
         }
 
         // fs - sample rate
@@ -145,6 +199,7 @@ namespace Sparrow
 
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            StopAquire();
             Close();
         }
 
@@ -161,29 +216,83 @@ namespace Sparrow
             return (complexArr);
         }
 
-        private double[] GetModulous(double[] realArr, double[] imagArr, AmpUnits units)
+        private double[] GetModulous(double[] realArr, double[] imagArr, AmpUnits units, int graphNum)
         {
-            double scale_factor = 1.0/(Convert.ToDouble(realArr.Length));
-
+            double scale_factor = .5/(Convert.ToDouble(realArr.Length)); // this scale factor asummes the sampled window is repeated for a full second
+            
             // the scale factor is need because of implicit windowing of the transform                    
             double[] modArr = new double[realArr.Length];
 
-            for (int i = 0; i < realArr.Length; i++)
-            {
-                if (units == AmpUnits.dBm)
-                {
-                    scale_factor = scale_factor/ sparrowOptionsObj.Resistance;
-                    modArr[i] = 10 * Math.Log10(scale_factor * (realArr[i] * realArr[i] + imagArr[i] * imagArr[i]));
-                    // we need to be careful here, if the value is less than -120 dBm just set it to -120 dBm
-                    // we can have -inf dBm
-                    if (modArr[i] < -120)
-                        modArr[i] = -120;
-                }
+            maxBroadArr[0] = -1E8;
+            maxBroadArr[1] = -1E8;
+            maxBroadArr[2] = -1E8;
 
-                if (units == AmpUnits.V)
-                    modArr[i] = scale_factor * Math.Sqrt(realArr[i] * realArr[i] + imagArr[i] * imagArr[i]);                
-                
-            }
+            switch (units)
+            {
+                case AmpUnits.dBmV:
+                    // overwrite the scale factor with the addition for dBmV
+                    scale_factor = 20 * Math.Log10(scale_factor) + 60;
+
+                    for (int i = 0; i < realArr.Length; i++)
+                    {
+                        modArr[i] = 10 * Math.Log10((realArr[i] * realArr[i] + imagArr[i] * imagArr[i])) + scale_factor;
+                        // Check that the abs was not zero
+                        if (modArr[i] < -120)
+                            modArr[i] = -120;
+
+                        if (graphNum == 1)
+                        {
+                            if(modArr[i] > maxBroadArr[0])
+                                maxBroadArr[0] = modArr[i];
+                            else if(modArr[i] > maxBroadArr[1])
+                                maxBroadArr[1] = modArr[i];
+                            else if(modArr[i] > maxBroadArr[2])
+                                maxBroadArr[2] = modArr[i];
+                        }
+                    }
+                    break;
+
+                case AmpUnits.V:
+                    for (int i = 0; i < realArr.Length; i++)
+                    {
+                        modArr[i] = scale_factor * Math.Sqrt((realArr[i] * realArr[i] + imagArr[i] * imagArr[i]));
+                        if (graphNum == 1)
+                        {
+                            if (modArr[i] > maxBroadArr[0])
+                                maxBroadArr[0] = modArr[i];
+                            else if (modArr[i] > maxBroadArr[1])
+                                maxBroadArr[1] = modArr[i];
+                            else if (modArr[i] > maxBroadArr[2])
+                                maxBroadArr[2] = modArr[i];
+                        }
+                    }
+                    break;
+
+                case AmpUnits.dBm:
+                    // overwrite scale factor with the addtion factor for dBm
+                    scale_factor = 20*Math.Log10(scale_factor) + - 10 * Math.Log10(sparrowOptionsObj.Resistance) + 30;
+
+                    for (int i = 0; i < realArr.Length; i++)
+                    {
+                        modArr[i] = 10*Math.Log10(realArr[i] * realArr[i] + imagArr[i] * imagArr[i]) + scale_factor;
+                        // Check that the abs was not zero
+                        if (modArr[i] < -120)
+                            modArr[i] = -120;
+
+                        if (graphNum == 1)
+                        {
+                            if (modArr[i] > maxBroadArr[0])
+                                maxBroadArr[0] = modArr[i];
+                            else if (modArr[i] > maxBroadArr[1])
+                                maxBroadArr[1] = modArr[i];
+                            else if (modArr[i] > maxBroadArr[2])
+                                maxBroadArr[2] = modArr[i];
+                        }
+
+                    }
+                    break;
+
+               }
 
             return (modArr);
         }
@@ -238,7 +347,7 @@ namespace Sparrow
         private void Sparrow_Shown(object sender, EventArgs e)
         {
             // start taking data
-            TakeData();
+            StartAquire();
         }
 
         private void UpdateSlowTimeSeries()
@@ -254,13 +363,17 @@ namespace Sparrow
                 ch1SlowIndex = 0;
         }
 
-        private void viewToolStripMenuItem_Click(object sender, EventArgs e)
+        private void UpdateAmpUnitLabels()
         {
-            if (sparrowOptionsObj.ShowDialog() == DialogResult.OK)
-            {
-                TakeData();
-            }
+            narrowAmpUnitsLabel.Text = "(" + sparrowOptionsObj.NarrowAmpUnits + ")";
+            broadAmpUnitsLabel.Text = "(" + sparrowOptionsObj.BroadAmpUnits + ")";
         }
 
+        void UpdateMax123()
+        {
+            max1Label.Text = maxBroadArr[0].ToString("0.00000");
+            max2Label.Text = maxBroadArr[1].ToString("0.00000");
+            max3Label.Text = maxBroadArr[2].ToString("0.00000");
+        }
     }
 }

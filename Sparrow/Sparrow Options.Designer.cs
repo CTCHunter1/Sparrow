@@ -68,6 +68,7 @@ namespace Sparrow
             this.broadSpecUnitsComboBox.FormattingEnabled = true;
             this.broadSpecUnitsComboBox.Items.AddRange(new object[] {
             "V",
+            "dBmV",
             "dBm"});
             this.broadSpecUnitsComboBox.Location = new System.Drawing.Point(12, 42);
             this.broadSpecUnitsComboBox.Name = "broadSpecUnitsComboBox";
@@ -79,6 +80,7 @@ namespace Sparrow
             this.narrowSpecUnitsComboBox.FormattingEnabled = true;
             this.narrowSpecUnitsComboBox.Items.AddRange(new object[] {
             "V",
+            "dBmV",
             "dBm"});
             this.narrowSpecUnitsComboBox.Location = new System.Drawing.Point(11, 91);
             this.narrowSpecUnitsComboBox.Name = "narrowSpecUnitsComboBox";
@@ -97,7 +99,7 @@ namespace Sparrow
             this.numSlowTimePtsNumeric.Size = new System.Drawing.Size(120, 20);
             this.numSlowTimePtsNumeric.TabIndex = 4;
             this.numSlowTimePtsNumeric.Value = new decimal(new int[] {
-            4096,
+            1024,
             0,
             0,
             0});

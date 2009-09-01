@@ -34,20 +34,23 @@ namespace Sparrow
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.optionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.nI6251ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.viewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.broadFreqGraph = new GraphControl.GraphControl();
             this.slowTimeGraph = new GraphControl.GraphControl();
             this.narrowFreqGraph = new GraphControl.GraphControl();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.label1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
-            this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
+            this.label1 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
-            this.label7 = new System.Windows.Forms.Label();
-            this.label8 = new System.Windows.Forms.Label();
-            this.viewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.narrowAmpUnitsLabel = new System.Windows.Forms.Label();
+            this.broadAmpUnitsLabel = new System.Windows.Forms.Label();
+            this.max1Label = new System.Windows.Forms.Label();
+            this.max2Label = new System.Windows.Forms.Label();
+            this.max3Label = new System.Windows.Forms.Label();
             this.menuStrip1.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -74,7 +77,7 @@ namespace Sparrow
             this.optionsToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(923, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(1034, 24);
             this.menuStrip1.TabIndex = 1;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -108,6 +111,13 @@ namespace Sparrow
             this.nI6251ToolStripMenuItem.Size = new System.Drawing.Size(124, 22);
             this.nI6251ToolStripMenuItem.Text = "NI-6251";
             this.nI6251ToolStripMenuItem.Click += new System.EventHandler(this.nI6251ToolStripMenuItem_Click);
+            // 
+            // viewToolStripMenuItem
+            // 
+            this.viewToolStripMenuItem.Name = "viewToolStripMenuItem";
+            this.viewToolStripMenuItem.Size = new System.Drawing.Size(124, 22);
+            this.viewToolStripMenuItem.Text = "View";
+            this.viewToolStripMenuItem.Click += new System.EventHandler(this.viewToolStripMenuItem_Click);
             // 
             // broadFreqGraph
             // 
@@ -166,23 +176,14 @@ namespace Sparrow
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Time Domain";
             // 
-            // label1
+            // label4
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(221, 632);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(44, 13);
-            this.label1.TabIndex = 4;
-            this.label1.Text = "Time (s)";
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(221, 313);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(44, 13);
-            this.label2.TabIndex = 5;
-            this.label2.Text = "Time (s)";
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(9, 469);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(20, 13);
+            this.label4.TabIndex = 7;
+            this.label4.Text = "(V)";
             // 
             // label3
             // 
@@ -193,14 +194,23 @@ namespace Sparrow
             this.label3.TabIndex = 6;
             this.label3.Text = "(V)";
             // 
-            // label4
+            // label2
             // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(9, 469);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(20, 13);
-            this.label4.TabIndex = 7;
-            this.label4.Text = "(V)";
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(221, 313);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(44, 13);
+            this.label2.TabIndex = 5;
+            this.label2.Text = "Time (s)";
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(221, 632);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(44, 13);
+            this.label1.TabIndex = 4;
+            this.label1.Text = "Time (s)";
             // 
             // label5
             // 
@@ -222,49 +232,72 @@ namespace Sparrow
             // 
             // groupBox2
             // 
-            this.groupBox2.Controls.Add(this.label8);
-            this.groupBox2.Controls.Add(this.label7);
+            this.groupBox2.Controls.Add(this.max3Label);
+            this.groupBox2.Controls.Add(this.max2Label);
+            this.groupBox2.Controls.Add(this.max1Label);
+            this.groupBox2.Controls.Add(this.narrowAmpUnitsLabel);
+            this.groupBox2.Controls.Add(this.broadAmpUnitsLabel);
             this.groupBox2.Controls.Add(this.label6);
             this.groupBox2.Controls.Add(this.narrowFreqGraph);
             this.groupBox2.Controls.Add(this.label5);
             this.groupBox2.Controls.Add(this.broadFreqGraph);
             this.groupBox2.Location = new System.Drawing.Point(456, 54);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(439, 661);
+            this.groupBox2.Size = new System.Drawing.Size(486, 661);
             this.groupBox2.TabIndex = 10;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Frequency Domain";
             // 
-            // label7
+            // narrowAmpUnitsLabel
             // 
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(6, 145);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(20, 13);
-            this.label7.TabIndex = 10;
-            this.label7.Text = "(V)";
+            this.narrowAmpUnitsLabel.AutoSize = true;
+            this.narrowAmpUnitsLabel.Location = new System.Drawing.Point(6, 459);
+            this.narrowAmpUnitsLabel.Name = "narrowAmpUnitsLabel";
+            this.narrowAmpUnitsLabel.Size = new System.Drawing.Size(20, 13);
+            this.narrowAmpUnitsLabel.TabIndex = 11;
+            this.narrowAmpUnitsLabel.Text = "(V)";
             // 
-            // label8
+            // broadAmpUnitsLabel
             // 
-            this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(6, 459);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(20, 13);
-            this.label8.TabIndex = 11;
-            this.label8.Text = "(V)";
+            this.broadAmpUnitsLabel.AutoSize = true;
+            this.broadAmpUnitsLabel.Location = new System.Drawing.Point(6, 145);
+            this.broadAmpUnitsLabel.Name = "broadAmpUnitsLabel";
+            this.broadAmpUnitsLabel.Size = new System.Drawing.Size(20, 13);
+            this.broadAmpUnitsLabel.TabIndex = 10;
+            this.broadAmpUnitsLabel.Text = "(V)";
             // 
-            // viewToolStripMenuItem
+            // max1Label
             // 
-            this.viewToolStripMenuItem.Name = "viewToolStripMenuItem";
-            this.viewToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.viewToolStripMenuItem.Text = "View";
-            this.viewToolStripMenuItem.Click += new System.EventHandler(this.viewToolStripMenuItem_Click);
+            this.max1Label.AutoSize = true;
+            this.max1Label.Location = new System.Drawing.Point(419, 44);
+            this.max1Label.Name = "max1Label";
+            this.max1Label.Size = new System.Drawing.Size(22, 13);
+            this.max1Label.TabIndex = 12;
+            this.max1Label.Text = "0.0";
+            // 
+            // max2Label
+            // 
+            this.max2Label.AutoSize = true;
+            this.max2Label.Location = new System.Drawing.Point(419, 67);
+            this.max2Label.Name = "max2Label";
+            this.max2Label.Size = new System.Drawing.Size(22, 13);
+            this.max2Label.TabIndex = 13;
+            this.max2Label.Text = "0.0";
+            // 
+            // max3Label
+            // 
+            this.max3Label.AutoSize = true;
+            this.max3Label.Location = new System.Drawing.Point(419, 90);
+            this.max3Label.Name = "max3Label";
+            this.max3Label.Size = new System.Drawing.Size(22, 13);
+            this.max3Label.TabIndex = 14;
+            this.max3Label.Text = "0.0";
             // 
             // Sparrow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(923, 719);
+            this.ClientSize = new System.Drawing.Size(1034, 719);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.menuStrip1);
             this.Controls.Add(this.groupBox2);
@@ -303,8 +336,11 @@ namespace Sparrow
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.ToolStripMenuItem viewToolStripMenuItem;
-        private System.Windows.Forms.Label label8;
-        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.Label narrowAmpUnitsLabel;
+        private System.Windows.Forms.Label broadAmpUnitsLabel;
+        private System.Windows.Forms.Label max3Label;
+        private System.Windows.Forms.Label max2Label;
+        private System.Windows.Forms.Label max1Label;
     }
 }
 

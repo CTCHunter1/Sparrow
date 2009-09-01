@@ -19,8 +19,8 @@ namespace Sparrow
         {
             InitializeComponent();
 
-            broadSpecUnitsComboBox.SelectedIndex = 1;
-            narrowSpecUnitsComboBox.SelectedIndex = 1;
+            broadSpecUnitsComboBox.SelectedIndex = 2;
+            narrowSpecUnitsComboBox.SelectedIndex = 2;
         }
 
         private void cancelButton_Click(object sender, EventArgs e)
@@ -35,8 +35,11 @@ namespace Sparrow
         {
             get
             {
-                if (broadSpecUnitsComboBox.SelectedIndex == 0)
+                if ((string) broadSpecUnitsComboBox.SelectedItem == "V")
                     return AmpUnits.V;
+
+                if ((string) broadSpecUnitsComboBox.SelectedItem == "dBmV")
+                    return AmpUnits.dBmV;
 
                 return AmpUnits.dBm;
             }
@@ -46,8 +49,11 @@ namespace Sparrow
         {
             get
             {
-                if (narrowSpecUnitsComboBox.SelectedIndex == 0)
+                if ((string) narrowSpecUnitsComboBox.SelectedItem == "V")
                     return AmpUnits.V;
+
+                if ((string) narrowSpecUnitsComboBox.SelectedItem == "dBmV")
+                    return AmpUnits.dBmV;
 
                 return AmpUnits.dBm;
             }        

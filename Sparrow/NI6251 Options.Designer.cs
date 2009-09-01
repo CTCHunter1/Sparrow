@@ -196,7 +196,7 @@ namespace Sparrow
             this.rateNumeric.Size = new System.Drawing.Size(96, 20);
             this.rateNumeric.TabIndex = 3;
             this.rateNumeric.Value = new decimal(new int[] {
-            600000,
+            100000,
             0,
             0,
             0});
@@ -231,7 +231,7 @@ namespace Sparrow
             this.samplesPerChannelNumeric.Size = new System.Drawing.Size(96, 20);
             this.samplesPerChannelNumeric.TabIndex = 1;
             this.samplesPerChannelNumeric.Value = new decimal(new int[] {
-            4096,
+            1024,
             0,
             0,
             0});

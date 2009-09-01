@@ -19,7 +19,7 @@ namespace Sparrow
         private decimal backupSamplesChannel;
         private decimal backupRate;
 
-        private Task taskObj;
+        private Task taskObj = null;
 
         public NI6251_Options()
         {
@@ -35,7 +35,14 @@ namespace Sparrow
 
         private void SetupDevice()
         {
-            taskObj = new Task();
+            // if there is already a task stop and dispose it
+            if (taskObj != null)
+            {
+                taskObj.Control(TaskAction.Stop);
+                taskObj.Dispose();
+            }
+
+            taskObj = new Task("Task 1");
 
             // setup the channel
             taskObj.AIChannels.CreateVoltageChannel(physicalChannelComboBox.Text, "", AITerminalConfiguration.Differential,
@@ -56,6 +63,7 @@ namespace Sparrow
             backupMaxValue = maximumValueNumeric.Value;
             backupSamplesChannel = samplesPerChannelNumeric.Value;
             backupRate = rateNumeric.Value;
+
         }
 
         private void cancel_button_Click(object sender, EventArgs e)
@@ -69,8 +77,6 @@ namespace Sparrow
 
         private void ok_button_Click(object sender, EventArgs e)
         {
-            // don't know if this is needed
-            taskObj.Control(TaskAction.Stop);
             SetupDevice();
         }
 
