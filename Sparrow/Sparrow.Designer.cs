@@ -28,47 +28,30 @@ namespace Sparrow
         /// </summary>
         private void InitializeComponent()
         {
-            this.fastTimeGraph = new GraphControl.GraphControl();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.optionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.nI6251ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.viewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.broadFreqGraph = new GraphControl.GraphControl();
-            this.slowTimeGraph = new GraphControl.GraphControl();
-            this.narrowFreqGraph = new GraphControl.GraphControl();
+            this.timeGraph1 = new GraphControl.GraphControl();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.label4 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
-            this.label5 = new System.Windows.Forms.Label();
-            this.label6 = new System.Windows.Forms.Label();
-            this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.timeGraph2 = new GraphControl.GraphControl();
             this.narrowAmpUnitsLabel = new System.Windows.Forms.Label();
+            this.label6 = new System.Windows.Forms.Label();
+            this.label5 = new System.Windows.Forms.Label();
+            this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.broadAmpUnitsLabel = new System.Windows.Forms.Label();
-            this.max1Label = new System.Windows.Forms.Label();
-            this.max2Label = new System.Windows.Forms.Label();
-            this.max3Label = new System.Windows.Forms.Label();
+            this.label7 = new System.Windows.Forms.Label();
+            this.freqGraph1 = new GraphControl.GraphControl();
             this.menuStrip1.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.SuspendLayout();
-            // 
-            // fastTimeGraph
-            // 
-            this.fastTimeGraph.AutoScale = true;
-            this.fastTimeGraph.Location = new System.Drawing.Point(32, 15);
-            this.fastTimeGraph.Name = "fastTimeGraph";
-            this.fastTimeGraph.Size = new System.Drawing.Size(393, 295);
-            this.fastTimeGraph.TabIndex = 0;
-            this.fastTimeGraph.XLim = new float[] {
-        -10F,
-        10F};
-            this.fastTimeGraph.YLim = new float[] {
-        -10F,
-        10F};
             // 
             // menuStrip1
             // 
@@ -77,7 +60,7 @@ namespace Sparrow
             this.optionsToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(1034, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(828, 24);
             this.menuStrip1.TabIndex = 1;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -119,45 +102,17 @@ namespace Sparrow
             this.viewToolStripMenuItem.Text = "View";
             this.viewToolStripMenuItem.Click += new System.EventHandler(this.viewToolStripMenuItem_Click);
             // 
-            // broadFreqGraph
+            // timeGraph1
             // 
-            this.broadFreqGraph.AutoScale = true;
-            this.broadFreqGraph.Location = new System.Drawing.Point(27, 15);
-            this.broadFreqGraph.Name = "broadFreqGraph";
-            this.broadFreqGraph.Size = new System.Drawing.Size(395, 295);
-            this.broadFreqGraph.TabIndex = 2;
-            this.broadFreqGraph.XLim = new float[] {
+            this.timeGraph1.AutoScale = true;
+            this.timeGraph1.Location = new System.Drawing.Point(6, 19);
+            this.timeGraph1.Name = "timeGraph1";
+            this.timeGraph1.Size = new System.Drawing.Size(391, 275);
+            this.timeGraph1.TabIndex = 4;
+            this.timeGraph1.XLim = new float[] {
         -10F,
         10F};
-            this.broadFreqGraph.YLim = new float[] {
-        -10F,
-        10F};
-            // 
-            // slowTimeGraph
-            // 
-            this.slowTimeGraph.AutoScale = true;
-            this.slowTimeGraph.Location = new System.Drawing.Point(32, 334);
-            this.slowTimeGraph.Name = "slowTimeGraph";
-            this.slowTimeGraph.Size = new System.Drawing.Size(393, 295);
-            this.slowTimeGraph.TabIndex = 3;
-            this.slowTimeGraph.XLim = new float[] {
-        -10F,
-        10F};
-            this.slowTimeGraph.YLim = new float[] {
-        -10F,
-        10F};
-            // 
-            // narrowFreqGraph
-            // 
-            this.narrowFreqGraph.AutoScale = true;
-            this.narrowFreqGraph.Location = new System.Drawing.Point(27, 328);
-            this.narrowFreqGraph.Name = "narrowFreqGraph";
-            this.narrowFreqGraph.Size = new System.Drawing.Size(395, 295);
-            this.narrowFreqGraph.TabIndex = 4;
-            this.narrowFreqGraph.XLim = new float[] {
-        -10F,
-        10F};
-            this.narrowFreqGraph.YLim = new float[] {
+            this.timeGraph1.YLim = new float[] {
         -10F,
         10F};
             // 
@@ -167,11 +122,13 @@ namespace Sparrow
             this.groupBox1.Controls.Add(this.label3);
             this.groupBox1.Controls.Add(this.label2);
             this.groupBox1.Controls.Add(this.label1);
-            this.groupBox1.Controls.Add(this.slowTimeGraph);
-            this.groupBox1.Controls.Add(this.fastTimeGraph);
-            this.groupBox1.Location = new System.Drawing.Point(12, 54);
+            this.groupBox1.Controls.Add(this.timeGraph2);
+            this.groupBox1.Controls.Add(this.narrowAmpUnitsLabel);
+            this.groupBox1.Controls.Add(this.label6);
+            this.groupBox1.Controls.Add(this.timeGraph1);
+            this.groupBox1.Location = new System.Drawing.Point(12, 41);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(428, 662);
+            this.groupBox1.Size = new System.Drawing.Size(800, 308);
             this.groupBox1.TabIndex = 5;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Time Domain";
@@ -179,38 +136,70 @@ namespace Sparrow
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(9, 469);
+            this.label4.Location = new System.Drawing.Point(195, 292);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(20, 13);
-            this.label4.TabIndex = 7;
-            this.label4.Text = "(V)";
+            this.label4.Size = new System.Drawing.Size(40, 13);
+            this.label4.TabIndex = 16;
+            this.label4.Text = "time (s)";
             // 
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(6, 145);
+            this.label3.Location = new System.Drawing.Point(590, 292);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(20, 13);
-            this.label3.TabIndex = 6;
-            this.label3.Text = "(V)";
+            this.label3.Size = new System.Drawing.Size(40, 13);
+            this.label3.TabIndex = 15;
+            this.label3.Text = "time (s)";
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(221, 313);
+            this.label2.Location = new System.Drawing.Point(3, 144);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(44, 13);
-            this.label2.TabIndex = 5;
-            this.label2.Text = "Time (s)";
+            this.label2.Size = new System.Drawing.Size(20, 13);
+            this.label2.TabIndex = 14;
+            this.label2.Text = "(V)";
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(221, 632);
+            this.label1.Location = new System.Drawing.Point(400, 144);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(44, 13);
-            this.label1.TabIndex = 4;
-            this.label1.Text = "Time (s)";
+            this.label1.Size = new System.Drawing.Size(20, 13);
+            this.label1.TabIndex = 13;
+            this.label1.Text = "(V)";
+            // 
+            // timeGraph2
+            // 
+            this.timeGraph2.AutoScale = true;
+            this.timeGraph2.Location = new System.Drawing.Point(403, 19);
+            this.timeGraph2.Name = "timeGraph2";
+            this.timeGraph2.Size = new System.Drawing.Size(390, 275);
+            this.timeGraph2.TabIndex = 12;
+            this.timeGraph2.XLim = new float[] {
+        -10F,
+        10F};
+            this.timeGraph2.YLim = new float[] {
+        -10F,
+        10F};
+            // 
+            // narrowAmpUnitsLabel
+            // 
+            this.narrowAmpUnitsLabel.AutoSize = true;
+            this.narrowAmpUnitsLabel.Location = new System.Drawing.Point(66, 584);
+            this.narrowAmpUnitsLabel.Name = "narrowAmpUnitsLabel";
+            this.narrowAmpUnitsLabel.Size = new System.Drawing.Size(20, 13);
+            this.narrowAmpUnitsLabel.TabIndex = 11;
+            this.narrowAmpUnitsLabel.Text = "(V)";
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(234, 432);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(79, 13);
+            this.label6.TabIndex = 9;
+            this.label6.Text = "Frequency (Hz)";
             // 
             // label5
             // 
@@ -221,83 +210,56 @@ namespace Sparrow
             this.label5.TabIndex = 8;
             this.label5.Text = "Frequency (Hz)";
             // 
-            // label6
-            // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(174, 307);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(79, 13);
-            this.label6.TabIndex = 9;
-            this.label6.Text = "Frequency (Hz)";
-            // 
             // groupBox2
             // 
-            this.groupBox2.Controls.Add(this.max3Label);
-            this.groupBox2.Controls.Add(this.max2Label);
-            this.groupBox2.Controls.Add(this.max1Label);
-            this.groupBox2.Controls.Add(this.narrowAmpUnitsLabel);
             this.groupBox2.Controls.Add(this.broadAmpUnitsLabel);
-            this.groupBox2.Controls.Add(this.label6);
-            this.groupBox2.Controls.Add(this.narrowFreqGraph);
+            this.groupBox2.Controls.Add(this.label7);
+            this.groupBox2.Controls.Add(this.freqGraph1);
             this.groupBox2.Controls.Add(this.label5);
-            this.groupBox2.Controls.Add(this.broadFreqGraph);
-            this.groupBox2.Location = new System.Drawing.Point(456, 54);
+            this.groupBox2.Location = new System.Drawing.Point(12, 368);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(486, 661);
+            this.groupBox2.Size = new System.Drawing.Size(804, 339);
             this.groupBox2.TabIndex = 10;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Frequency Domain";
             // 
-            // narrowAmpUnitsLabel
-            // 
-            this.narrowAmpUnitsLabel.AutoSize = true;
-            this.narrowAmpUnitsLabel.Location = new System.Drawing.Point(6, 459);
-            this.narrowAmpUnitsLabel.Name = "narrowAmpUnitsLabel";
-            this.narrowAmpUnitsLabel.Size = new System.Drawing.Size(20, 13);
-            this.narrowAmpUnitsLabel.TabIndex = 11;
-            this.narrowAmpUnitsLabel.Text = "(V)";
-            // 
             // broadAmpUnitsLabel
             // 
             this.broadAmpUnitsLabel.AutoSize = true;
-            this.broadAmpUnitsLabel.Location = new System.Drawing.Point(6, 145);
+            this.broadAmpUnitsLabel.Location = new System.Drawing.Point(3, 160);
             this.broadAmpUnitsLabel.Name = "broadAmpUnitsLabel";
-            this.broadAmpUnitsLabel.Size = new System.Drawing.Size(20, 13);
-            this.broadAmpUnitsLabel.TabIndex = 10;
-            this.broadAmpUnitsLabel.Text = "(V)";
+            this.broadAmpUnitsLabel.Size = new System.Drawing.Size(34, 13);
+            this.broadAmpUnitsLabel.TabIndex = 18;
+            this.broadAmpUnitsLabel.Text = "(dBm)";
             // 
-            // max1Label
+            // label7
             // 
-            this.max1Label.AutoSize = true;
-            this.max1Label.Location = new System.Drawing.Point(419, 44);
-            this.max1Label.Name = "max1Label";
-            this.max1Label.Size = new System.Drawing.Size(22, 13);
-            this.max1Label.TabIndex = 12;
-            this.max1Label.Text = "0.0";
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(400, 305);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(79, 13);
+            this.label7.TabIndex = 17;
+            this.label7.Text = "Frequency (Hz)";
             // 
-            // max2Label
+            // freqGraph1
             // 
-            this.max2Label.AutoSize = true;
-            this.max2Label.Location = new System.Drawing.Point(419, 67);
-            this.max2Label.Name = "max2Label";
-            this.max2Label.Size = new System.Drawing.Size(22, 13);
-            this.max2Label.TabIndex = 13;
-            this.max2Label.Text = "0.0";
-            // 
-            // max3Label
-            // 
-            this.max3Label.AutoSize = true;
-            this.max3Label.Location = new System.Drawing.Point(419, 90);
-            this.max3Label.Name = "max3Label";
-            this.max3Label.Size = new System.Drawing.Size(22, 13);
-            this.max3Label.TabIndex = 14;
-            this.max3Label.Text = "0.0";
+            this.freqGraph1.AutoScale = true;
+            this.freqGraph1.Location = new System.Drawing.Point(23, 30);
+            this.freqGraph1.Name = "freqGraph1";
+            this.freqGraph1.Size = new System.Drawing.Size(775, 272);
+            this.freqGraph1.TabIndex = 9;
+            this.freqGraph1.XLim = new float[] {
+        -10F,
+        10F};
+            this.freqGraph1.YLim = new float[] {
+        -10F,
+        10F};
             // 
             // Sparrow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1034, 719);
+            this.ClientSize = new System.Drawing.Size(828, 719);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.menuStrip1);
             this.Controls.Add(this.groupBox2);
@@ -318,29 +280,26 @@ namespace Sparrow
 
         #endregion
 
-        private GraphControl.GraphControl fastTimeGraph;
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem optionsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem nI6251ToolStripMenuItem;
-        private GraphControl.GraphControl broadFreqGraph;
-        private GraphControl.GraphControl slowTimeGraph;
-        private GraphControl.GraphControl narrowFreqGraph;
+        private GraphControl.GraphControl timeGraph1;
         private System.Windows.Forms.GroupBox groupBox1;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.ToolStripMenuItem viewToolStripMenuItem;
         private System.Windows.Forms.Label narrowAmpUnitsLabel;
+        private GraphControl.GraphControl freqGraph1;
+        private GraphControl.GraphControl timeGraph2;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label label7;
         private System.Windows.Forms.Label broadAmpUnitsLabel;
-        private System.Windows.Forms.Label max3Label;
-        private System.Windows.Forms.Label max2Label;
-        private System.Windows.Forms.Label max1Label;
     }
 }
 

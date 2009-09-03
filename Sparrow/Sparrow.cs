@@ -32,32 +32,12 @@ namespace Sparrow
         DataSeries ch1VObj;
         DownSampler downSamplerObj; 
 
-        double[] ch1VFast_t;
-        double[] ch1RealBroad_f;
-        double[] ch1ImagBroad_f;
-        double[] ch1ModBroad_f;
-        
-        double[] ch1Vslow_t;
-        double[] ch1RealNarrow_f;
-        double[] ch1ImagNarrow_f;
-        double[] ch1ModNarrow_f;
-        
-        int ch1SlowIndex = 0;
-        int halfLen = 0;
-
-        double[] tArrFast;
-        double[] tArrSlow;
-
-
-        double[] fArrBroad;
-        double[] fArrNarrow;
-
-        int samplesPerChannel;
-        int fSampleRateFast;
-        double fSampleRateSlow;
-
         private bool aquireData = false;
-        
+
+        // update timer
+        Timer timerObj;
+        bool bDisplayUpdate = false;
+
         private double [] maxBroadArr = new double[3]{-1E8, -1E8, -1E8};
 
         public Sparrow()
@@ -69,6 +49,12 @@ namespace Sparrow
             ni6251OptionsObj = new NI6251_Options();
             sparrowOptionsObj = new Sparrow_Options();
             UpdateAmpUnitLabels();
+
+            timerObj = new Timer();
+            timerObj.Interval = 100;        // number of miliseconds until timer clicks
+            timerObj.Tick += new EventHandler(TimerTick);
+            timerObj.Start();
+
         }
 
         private void AnalogInCallback(IAsyncResult ar)
@@ -78,20 +64,40 @@ namespace Sparrow
                 // Get the waveform object
                 ch1WaveformFast = analogInReader.EndReadWaveform(ar);
                 ch1VObj.Y_t = ch1WaveformFast.GetScaledData();      // get array of doubles the values in Volts
-                
-                ch1VObj.UpdateFFT();
-
+                               
                 downSamplerObj.UpdateDownsampledData();
 
-                // create slower waveform by averaging each half of the sampled signal
-                fastTimeGraph.Plot("axis1", ch1VObj.TimeArr, ch1VObj.Y_t, Color.Blue);
-                broadFreqGraph.Plot("axis2", ch1VObj.FrequencyArr, ch1VObj.YAbs_f, Color.Red);                
-                slowTimeGraph.Plot("axis3", downSamplerObj.GetDownsampledDataSeries(3).TimeArr, downSamplerObj.GetDownsampledDataSeries(3).Y_t, Color.Blue);
+                // Only Update the graphs when the display update bool is true
+                if (bDisplayUpdate == true)
+                {
+                    // update the time graphs
+                    if (sparrowOptionsObj.TimeDecGraph1 == 0)
+                    {
+                        // create slower waveform by averaging each half of the sampled signal
+                        timeGraph1.Plot("axis1", ch1VObj.TimeArr, ch1VObj.Y_t, Color.Blue);
+                    }
+                    else
+                    {
+                        timeGraph1.Plot("axis1", downSamplerObj.GetDownsampledDataSeries(sparrowOptionsObj.TimeDecGraph1).TimeArr,
+                            downSamplerObj.GetDownsampledDataSeries(sparrowOptionsObj.TimeDecGraph1).Y_t, Color.Blue);
+                    }
 
-                downSamplerObj.GetDownsampledDataSeries(3).UpdateFFT();
+                    // update the time graphs
+                    if (sparrowOptionsObj.TimeDecGraph2 == 0)
+                    {
+                        // create slower waveform by averaging each half of the sampled signal
+                        timeGraph2.Plot("axis1", ch1VObj.TimeArr, ch1VObj.Y_t, Color.Blue);
+                    }
+                    else
+                    {
+                        timeGraph2.Plot("axis1", downSamplerObj.GetDownsampledDataSeries(sparrowOptionsObj.TimeDecGraph2).TimeArr,
+                            downSamplerObj.GetDownsampledDataSeries(sparrowOptionsObj.TimeDecGraph2).Y_t, Color.Blue);
+                    }
+              
+                    freqGraph1.Semilogx("axis1", downSamplerObj.DownsampledLogFrequency, downSamplerObj.Y_fLog, Color.Red);
+                    bDisplayUpdate = false;
+                }
 
-                narrowFreqGraph.Plot("axis4", downSamplerObj.GetDownsampledDataSeries(3).FrequencyArr, downSamplerObj.GetDownsampledDataSeries(3).YAbs_f, Color.Red);
-                
                 // keep the aquisition running
                 if (aquireData == true)
                     iAsyncResultObj = analogInReader.BeginReadWaveform(ch1VObj.NumPoints, AnalogInCallback, ni6251OptionsObj.TaskObj);
@@ -116,6 +122,12 @@ namespace Sparrow
                         break;
                 }                
             } 
+        }
+
+        private void TimerTick(Object o, EventArgs e)
+        {
+            // set the update bool to true
+            bDisplayUpdate = true;
         }
 
         private void nI6251ToolStripMenuItem_Click(object sender, EventArgs e)
@@ -151,7 +163,7 @@ namespace Sparrow
             
             // create the downsampler object
             downSamplerObj = new DownSampler(ch1VObj, sparrowOptionsObj.DownsampleFactor,
-                sparrowOptionsObj.PointsPerDecade, sparrowOptionsObj.NumDecades, sparrowOptionsObj.NarrowAmpUnits, sparrowOptionsObj.Resistance);
+                sparrowOptionsObj.PointsPerDecade, sparrowOptionsObj.NumDecades, sparrowOptionsObj.BroadAmpUnits, sparrowOptionsObj.Resistance);
 
             downSamplerObj.OrigionalDataSeries = ch1VObj;
 
@@ -262,30 +274,10 @@ namespace Sparrow
             StartAquire();
         }
 
-        private void UpdateSlowTimeSeries()
-        {
-            ch1Vslow_t[ch1SlowIndex] = GetAverageFromDoubleArray(ch1VFast_t, 0, halfLen);
-            ch1Vslow_t[ch1SlowIndex + 1] = GetAverageFromDoubleArray(ch1VFast_t, halfLen, halfLen);
-
-            // increment the slow index by 2
-            ch1SlowIndex += 2;
-
-            // if the slow index is equal to the length of the slow array reset it
-            if (ch1SlowIndex >= ch1Vslow_t.Length)
-                ch1SlowIndex = 0;
-        }
-
         private void UpdateAmpUnitLabels()
         {
-            narrowAmpUnitsLabel.Text = "(" + sparrowOptionsObj.NarrowAmpUnits + ")";
+            //narrowAmpUnitsLabel.Text = "(" + sparrowOptionsObj.NarrowAmpUnits + ")";
             broadAmpUnitsLabel.Text = "(" + sparrowOptionsObj.BroadAmpUnits + ")";
-        }
-
-        void UpdateMax123()
-        {
-            max1Label.Text = maxBroadArr[0].ToString("0.00000");
-            max2Label.Text = maxBroadArr[1].ToString("0.00000");
-            max3Label.Text = maxBroadArr[2].ToString("0.00000");
         }
     }
 
@@ -301,7 +293,10 @@ namespace Sparrow
         private DataSeriesNode[] downsampledNodes;
         AmpUnits ampUnits;
         double mResistance;
-        
+
+        double[] mFLogArr;      // the frequency scale for the downsampled data
+        double[] y_logf = null;            // the data points on a log(f) scale
+
         // points per update
         private int pointsPerUpdate = 0;
 
@@ -314,7 +309,6 @@ namespace Sparrow
             mPointsPerDecade = pointsPerDecade;
             ampUnits = fourierAmpUnits;
             mResistance = resistance;
-
             InitDownsampledDataSeries();
         }
 
@@ -353,6 +347,23 @@ namespace Sparrow
             {
                 InitDownsampledDataSeries();
                 mDownsamplingFactor = value;
+            }
+        }
+
+        public double[] DownsampledLogFrequency
+        {
+            get
+            {
+                return (mFLogArr);
+            }
+        }
+
+        public double[] Y_fLog
+        {
+            get
+            {
+                y_logf = GetDownsampledY_fLog();
+                return (y_logf);
             }
         }
 
@@ -398,9 +409,94 @@ namespace Sparrow
             // calculate the number of points updated per data set
             pointsPerUpdate = OrigionalDataSeries.Y_t.Length / mDownsamplingFactor;
 
+            mFLogArr = CreateDownsampledFrequency();
         }
 
+        private double [] CreateDownsampledFrequency()
+        {
+            int iNumLogfPts = (origionalDataSeries.NumPoints/2)*(mDownsamplingFactor-1)/mDownsamplingFactor +
+                (mNumDecades-1)*(mPointsPerDecade/2*(mDownsamplingFactor-1))/mDownsamplingFactor +
+                mPointsPerDecade/2;
 
+            double[] fLogArr = new double[iNumLogfPts];
+
+            //copy backwards
+            int fIndex = iNumLogfPts-1;      // index to use for the fLogArr
+
+            // copy the origial data frequencies (do not copy this index)
+            int stopIndex = (origionalDataSeries.NumPoints / 2) / mDownsamplingFactor;
+
+            for (int i = origionalDataSeries.NumPoints / 2-1; i >= stopIndex; i--)
+            {
+                fLogArr[fIndex] = origionalDataSeries.FrequencyHalfArr[i];
+                fIndex--;
+            }
+            
+            // for each decade copy out the frequencies
+            stopIndex = (mPointsPerDecade / 2) / mDownsamplingFactor;
+
+            for (int i = 0; i < (mNumDecades - 1); i++)
+            {                
+                for (int j = mPointsPerDecade/2 - 1; j >= stopIndex; j--)
+                {
+                    fLogArr[fIndex] = downsampledNodes[i].FrequencyHalfArr[j];
+                    fIndex--;
+                }
+            }
+
+            for (int j = mPointsPerDecade/2 -1; j >= 0; j--)
+            {
+                fLogArr[fIndex] = downsampledNodes[mNumDecades - 1].FrequencyHalfArr[j];
+                fIndex--;
+            }
+
+            return (fLogArr);
+        }
+
+        private double[] GetDownsampledY_fLog()
+        {
+            int iNumLogfPts = mFLogArr.Length;
+
+            double[] y_fLog = new double[iNumLogfPts];
+
+            //copy backwards
+            int yIndex = iNumLogfPts - 1;      // index to use for the fLogArr
+
+            // update the FFT first
+            origionalDataSeries.UpdateFFT();
+            // copy the origial data frequencies (do not copy this index)
+            int stopIndex = (origionalDataSeries.NumPoints / 2) / mDownsamplingFactor;
+            for (int i = origionalDataSeries.NumPoints / 2 - 1; i >= stopIndex; i--)
+            {
+                double[] y_temp = origionalDataSeries.YAbs_fHalf;
+                y_fLog[yIndex] = y_temp[i];
+                yIndex--;
+            }
+
+            // for each decade copy out the frequencies
+            stopIndex = (mPointsPerDecade / 2) / mDownsamplingFactor;
+
+            for (int i = 0; i < (mNumDecades - 1); i++)
+            {
+                downsampledNodes[i].UpdateFFT();        // update the fft for this node
+                for (int j = mPointsPerDecade / 2 - 1; j >= stopIndex; j--)
+                {
+                    double[] y_temp = downsampledNodes[i].YAbs_fHalf;
+                    y_fLog[yIndex] = y_temp[j];
+                    yIndex--;
+                }
+            }
+
+            downsampledNodes[mNumDecades - 1].UpdateFFT();
+            for (int j = mPointsPerDecade / 2 - 1; j >= 0; j--)
+            {
+                double[] y_temp = downsampledNodes[mNumDecades - 1].YAbs_fHalf;
+                y_fLog[yIndex] = y_temp[j];
+                yIndex--;
+            }
+
+            return (y_fLog);
+        }
     }
 
     public class DataSeries
@@ -408,6 +504,7 @@ namespace Sparrow
         // related to the data
         private double[] tArr;
         private double[] fArr;
+        private double[] fHalfArr; 
         protected double[] y_t;
         private bool bUpdateFFT = false;
         private double[] yAbs_f;
@@ -431,7 +528,8 @@ namespace Sparrow
             // create the data arrays.
             CreateTimeArr();
             fArr = rftObj.GenerateFrequencyScale(fSample, numPts);
-            
+            fHalfArr = GetFreqHalfArr(fArr);
+
             y_t = new double[numPts];
             mAmpUnits = fourierAmpUnits;
             mResistance = resistance;
@@ -446,6 +544,7 @@ namespace Sparrow
             // create the data arrays.
             CreateTimeArr();
             fArr = rftObj.GenerateFrequencyScale(fSample, numPts);
+            fHalfArr = GetFreqHalfArr(fArr);
 
             y_t = new double[numPts];
             mAmpUnits = fourierAmpUnits;
@@ -486,6 +585,14 @@ namespace Sparrow
             }   
         }
 
+        public double[] FrequencyHalfArr
+        {
+            get
+            {
+                return (fHalfArr);
+            }
+        }
+
         public int NumPoints
         {
             get
@@ -498,6 +605,7 @@ namespace Sparrow
                 // create the data arrays.
                 CreateTimeArr();
                 fArr = rftObj.GenerateFrequencyScale(fSample, mNumPts);
+                fHalfArr = GetFreqHalfArr(fArr);
                 // update FFT
                 UpdateFFT();
             }
@@ -516,6 +624,8 @@ namespace Sparrow
                 // create the data arrays.
                 CreateTimeArr();
                 fArr = rftObj.GenerateFrequencyScale(fSample, mNumPts);
+                fHalfArr = GetFreqHalfArr(fArr);
+
             }
         }
 
@@ -527,7 +637,21 @@ namespace Sparrow
             }
         }
 
-        public void UpdateFFT()
+        public double [] YAbs_fHalf
+        {
+            get
+            {
+                double[] halfArr = new double[yAbs_f.Length / 2];
+                for (int i = 0; i < (yAbs_f.Length / 2); i++)
+                {
+                    halfArr[i] = yAbs_f[i+1];
+                }
+
+                return (halfArr);
+            }
+        }
+
+            public void UpdateFFT()
         {           
             rftObj.TransformForward(Y_t, out yReal_f, out yImag_f);
             // any math that needs to be done should just be done in this function
@@ -656,6 +780,18 @@ namespace Sparrow
             }
 
             return (modArr);
+        }
+
+        private double[] GetFreqHalfArr(double[] fArr)
+        {
+            double [] retArr = new double[fArr.Length/2];
+
+            for (int i = 0; i < retArr.Length; i++)
+            {
+                retArr[i] = fArr[i+1];
+            }
+
+            return (retArr);
         }
     }
 

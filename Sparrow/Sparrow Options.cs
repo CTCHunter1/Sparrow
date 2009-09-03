@@ -11,7 +11,8 @@ namespace Sparrow
     public partial class Sparrow_Options : Form
     {
         private int backupBroadIndex;
-        private int backupNarrowIndex;
+        private decimal backupTimeDecGraph1;
+        private decimal backupTimeDecGraph2;
         private decimal backupResistance;
         private decimal backupNumDownsampledPtsPow2;
         private decimal backupDownsapledFactorPow2;
@@ -22,14 +23,14 @@ namespace Sparrow
             InitializeComponent();
 
             broadSpecUnitsComboBox.SelectedIndex = 2;
-            narrowSpecUnitsComboBox.SelectedIndex = 2;
         }
 
         private void cancelButton_Click(object sender, EventArgs e)
         {
             // restore the backed up settings
             broadSpecUnitsComboBox.SelectedIndex = backupBroadIndex;
-            narrowSpecUnitsComboBox.SelectedIndex = backupNarrowIndex;
+            timeDec1Numeric.Value = backupTimeDecGraph1;
+            timeDec2Numeric.Value = backupTimeDecGraph2;
             numDownsampledPtsPow2Numeric.Value = backupNumDownsampledPtsPow2;
             downsampleFactorPow2Numeric.Value = backupDownsapledFactorPow2;
             resistanceNumeric.Value = backupResistance;
@@ -50,18 +51,18 @@ namespace Sparrow
             }
         }
 
-        public AmpUnits NarrowAmpUnits
+        public int TimeDecGraph1
         {
-            get
-            {
-                if ((string) narrowSpecUnitsComboBox.SelectedItem == "V")
-                    return AmpUnits.V;
+            get{
+                return (Convert.ToInt32(timeDec1Numeric.Value));
+            }
+        }
 
-                if ((string) narrowSpecUnitsComboBox.SelectedItem == "dBmV")
-                    return AmpUnits.dBmV;
-
-                return AmpUnits.dBm;
-            }        
+        public int TimeDecGraph2
+        {
+            get{
+                return (Convert.ToInt32(timeDec2Numeric.Value));
+            }
         }
 
         public int PointsPerDecade
@@ -99,7 +100,8 @@ namespace Sparrow
         private void View_Options_Shown(object sender, EventArgs e)
         {
             backupBroadIndex = broadSpecUnitsComboBox.SelectedIndex;
-            backupNarrowIndex = narrowSpecUnitsComboBox.SelectedIndex;
+            backupTimeDecGraph1 = timeDec1Numeric.Value;
+            backupTimeDecGraph2 = timeDec2Numeric.Value;
             backupNumDownsampledPtsPow2 = numDownsampledPtsPow2Numeric.Value;
             backupDownsapledFactorPow2 = downsampleFactorPow2Numeric.Value;
             backupResistance = resistanceNumeric.Value;
@@ -118,6 +120,22 @@ namespace Sparrow
         private void downsampleFactorPow2Numeric_ValueChanged(object sender, EventArgs e)
         {
             downsampleFactorLabel.Text = Math.Pow(2.0, Convert.ToDouble(downsampleFactorPow2Numeric.Value)).ToString("0");            
+        }
+
+        private void numDecadesNumeric_ValueChanged(object sender, EventArgs e)
+        {
+            if (timeDec1Numeric.Value >= numDecadesNumeric.Value)
+            {
+                timeDec1Numeric.Value = numDecadesNumeric.Value;
+            }
+
+            if (timeDec2Numeric.Value >= numDecadesNumeric.Value)
+            {
+                timeDec2Numeric.Value = numDecadesNumeric.Value;
+            }
+
+            timeDec1Numeric.Maximum = numDecadesNumeric.Value;
+            timeDec2Numeric.Maximum = numDecadesNumeric.Value;
         }
 
 
