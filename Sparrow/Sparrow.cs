@@ -44,16 +44,31 @@ namespace Sparrow
         {
             
             InitializeComponent();
+            statusStrip.Items[1].Text = "Ready";
 
-            rftObj = new RealFourierTransformation(TransformationConvention.Matlab);                    
-            ni6251OptionsObj = new NI6251_Options();
             sparrowOptionsObj = new Sparrow_Options();
-            UpdateAmpUnitLabels();
+            
+            try
+            {
+                rftObj = new RealFourierTransformation(TransformationConvention.Matlab);
+                ni6251OptionsObj = new NI6251_Options();
+                UpdateAmpUnitLabels();
+            }   
+            catch (DaqException ex)
+            {
+                if (ex.Error == -201003)
+                {
+                    MessageBox.Show("Error: No DAQ detected.");
+                }
+            }
+            catch (Exception ex1)
+            {
+                MessageBox.Show(ex1.Message);
+            }
 
             timerObj = new Timer();
             timerObj.Interval = 100;        // number of miliseconds until timer clicks
             timerObj.Tick += new EventHandler(TimerTick);
-            timerObj.Start();
 
         }
 
@@ -132,56 +147,80 @@ namespace Sparrow
 
         private void nI6251ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            StopAquire();
-            
-            // We dont' care what changed
-            ni6251OptionsObj.ShowDialog();
-            
-            StartAquire();     // restart the data acquistion
-            
-        }
+            try
+            {
+            if (ni6251OptionsObj == null)
+                ni6251OptionsObj = new NI6251_Options();
+           
+                StopAquire();
+                // We dont' care what changed
+                ni6251OptionsObj.ShowDialog();
 
-        private void viewToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            StopAquire();
+                StartAquire();     // restart the data acquistion
+            }catch (DaqException ex)
+            {
+                if (ex.Error == -201003)
+                {
+                    if (ni6251OptionsObj != null)
+                        ni6251OptionsObj.Dispose();
 
-            sparrowOptionsObj.ShowDialog();
-
-            StartAquire();
+                    MessageBox.Show("Error: No DAQ detected.");
+                }
+                else
+                    throw (ex);
+            }
         }
 
         private void StartAquire()
         {
-            // stop any already running aquisitions
-            ni6251OptionsObj.TaskObj.Control(TaskAction.Stop);
+            try
+            {
+                // stop any already running aquisitions
+                ni6251OptionsObj.TaskObj.Control(TaskAction.Stop);
 
-            // create the channel 1 data object
-            ch1VObj = new DataSeries(ni6251OptionsObj.SamplesPerChannel, 
-                ni6251OptionsObj.Rate, sparrowOptionsObj.BroadAmpUnits, sparrowOptionsObj.Resistance);
+                // create the channel 1 data object
+                ch1VObj = new DataSeries(ni6251OptionsObj.SamplesPerChannel,
+                    ni6251OptionsObj.Rate, sparrowOptionsObj.BroadAmpUnits, sparrowOptionsObj.Resistance);
 
-            UpdateAmpUnitLabels();
-            
-            // create the downsampler object
-            downSamplerObj = new DownSampler(ch1VObj, sparrowOptionsObj.DownsampleFactor,
-                sparrowOptionsObj.PointsPerDecade, sparrowOptionsObj.NumDecades, sparrowOptionsObj.BroadAmpUnits, sparrowOptionsObj.Resistance);
+                UpdateAmpUnitLabels();
 
-            downSamplerObj.OrigionalDataSeries = ch1VObj;
+                // create the downsampler object
+                downSamplerObj = new DownSampler(ch1VObj, sparrowOptionsObj.DownsampleFactor,
+                    sparrowOptionsObj.PointsPerDecade, sparrowOptionsObj.NumDecades, sparrowOptionsObj.BroadAmpUnits, sparrowOptionsObj.Resistance);
 
-            // Setup the NI-DAQ for the configured task and start aquisition to the analogCallback
-            analogInReader = new AnalogSingleChannelReader(ni6251OptionsObj.TaskObj.Stream);
-            analogCallback = new AsyncCallback(AnalogInCallback);
+                downSamplerObj.OrigionalDataSeries = ch1VObj;
 
-            analogInReader.SynchronizeCallbacks = true;
-            iAsyncResultObj = analogInReader.BeginReadWaveform(ni6251OptionsObj.SamplesPerChannel, analogCallback, ni6251OptionsObj.TaskObj);
-            
-            aquireData = true;
+                // Setup the NI-DAQ for the configured task and start aquisition to the analogCallback
+                analogInReader = new AnalogSingleChannelReader(ni6251OptionsObj.TaskObj.Stream);
+                analogCallback = new AsyncCallback(AnalogInCallback);
+
+                analogInReader.SynchronizeCallbacks = true;
+                iAsyncResultObj = analogInReader.BeginReadWaveform(ni6251OptionsObj.SamplesPerChannel, analogCallback, ni6251OptionsObj.TaskObj);
+
+                timerObj.Start();
+
+                aquireData = true;
+                statusStrip.Items[1].Text = "Aquiring";
+                stopToolStripMenuItem.Enabled = true;
+                startToolStripMenuItem.Enabled = false;
+            }
+            catch (NullReferenceException)
+            {
+
+            } 
         }
 
         private void StopAquire()
         {
-            aquireData = false;
-            // spin for operation to complete
-            iAsyncResultObj.AsyncWaitHandle.WaitOne();           
+            if (aquireData == true)
+            {
+                aquireData = false;
+                // spin for operation to complete
+                iAsyncResultObj.AsyncWaitHandle.WaitOne();
+                statusStrip.Items[1].Text = "Stoped";
+                stopToolStripMenuItem.Enabled = false;
+                startToolStripMenuItem.Enabled = true;
+            } 
         }
 
         // fs - sample rate
@@ -202,7 +241,13 @@ namespace Sparrow
 
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            StopAquire();
+            try
+            {
+                StopAquire();               
+            }
+            catch (Exception)
+            { };
+
             Close();
         }
 
@@ -279,585 +324,41 @@ namespace Sparrow
             //narrowAmpUnitsLabel.Text = "(" + sparrowOptionsObj.NarrowAmpUnits + ")";
             broadAmpUnitsLabel.Text = "(" + sparrowOptionsObj.BroadAmpUnits + ")";
         }
-    }
 
-    public class DownSampler
-    {
-        private int mNumDecades;
-        /// <summary>
-        /// Must be power of 2
-        /// </summary>
-        private int mDownsamplingFactor;
-        int mPointsPerDecade;
-        private DataSeries origionalDataSeries;
-        private DataSeriesNode[] downsampledNodes;
-        AmpUnits ampUnits;
-        double mResistance;
-
-        double[] mFLogArr;      // the frequency scale for the downsampled data
-        double[] y_logf = null;            // the data points on a log(f) scale
-
-        // points per update
-        private int pointsPerUpdate = 0;
-
-        public DownSampler(DataSeries origioalDataSeriesObj, int downsamplingFactor, int pointsPerDecade, int numDecadesToDownSample, AmpUnits fourierAmpUnits, double resistance)
+        private void preferencesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            origionalDataSeries = origioalDataSeriesObj;
+            try
+            {
+                StopAquire();
+            }
+            catch (NullReferenceException)
+            {
+                MessageBox.Show("Error: No DAQ Connected");
+            }
+            sparrowOptionsObj.ShowDialog();
 
-            mNumDecades = numDecadesToDownSample;
-            mDownsamplingFactor = downsamplingFactor;
-            mPointsPerDecade = pointsPerDecade;
-            ampUnits = fourierAmpUnits;
-            mResistance = resistance;
-            InitDownsampledDataSeries();
+            StartAquire();
         }
 
-        public DataSeries OrigionalDataSeries
+        private void startToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            get
-            {
-                return (origionalDataSeries);
-            }
-            set
-            {
-                origionalDataSeries = value;
-            }
+            StartAquire();
         }
 
-        public int NumDecades
+        private void stopToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            get
-            {
-                return (mNumDecades);
-            }
-            set
-            {
-                InitDownsampledDataSeries();
-                mNumDecades = value;
-            }
+            StopAquire();
         }
 
-        public int DownsamplingFactor
+        private void restartToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            get
-            {
-                return(mDownsamplingFactor);
-            }
-            set
-            {
-                InitDownsampledDataSeries();
-                mDownsamplingFactor = value;
-            }
+            StopAquire();
+            StartAquire();           
         }
 
-        public double[] DownsampledLogFrequency
+        private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            get
-            {
-                return (mFLogArr);
-            }
-        }
-
-        public double[] Y_fLog
-        {
-            get
-            {
-                y_logf = GetDownsampledY_fLog();
-                return (y_logf);
-            }
-        }
-
-        public void UpdateDownsampledData()
-        {
-            // because the data is coming in in 2^n multiple powers
-            // and the downsampling factor must be a power of 2
-            // the downsampled data sets can only add 1, 2, 4,.. 2^n points per  update
-            // update the lowest downsampled data series
-            for(int i = 0; i < pointsPerUpdate; i++)
-            {
-                downsampledNodes[0].AddPoint(
-                    downsampledNodes[0].GetAverageFromDoubleArray(
-                    origionalDataSeries.Y_t, i*mDownsamplingFactor, mDownsamplingFactor));    
-            }
 
         }
-
-        public DataSeries GetDownsampledDataSeries(int decade)
-        {
-            return ((DataSeries) downsampledNodes[decade - 1]);
-        }
-
-        private void InitDownsampledDataSeries()
-        {
-            downsampledNodes = new DataSeriesNode[mNumDecades];
-            
-            // these data series nodes need to be created in reverse order so 
-            // that the previous one can know about the next one
-            for (int i = mNumDecades-1; i >=0 ; i--)
-            {
-                // the last decade has no next node pointer
-                if (i == (mNumDecades - 1))
-                    downsampledNodes[i] = new DataSeriesNode(mPointsPerDecade, origionalDataSeries.SampleRate / (Math.Pow((double)mDownsamplingFactor, (double)(i + 1))),
-                        ampUnits, mResistance, false, mDownsamplingFactor, null);
-
-                else
-                    downsampledNodes[i] = new DataSeriesNode(mPointsPerDecade, origionalDataSeries.SampleRate / (Math.Pow((double)mDownsamplingFactor, (double)(i + 1))),
-                        ampUnits, mResistance, false, mDownsamplingFactor, downsampledNodes[i + 1]);
-                
-            }
-            
-            // calculate the number of points updated per data set
-            pointsPerUpdate = OrigionalDataSeries.Y_t.Length / mDownsamplingFactor;
-
-            mFLogArr = CreateDownsampledFrequency();
-        }
-
-        private double [] CreateDownsampledFrequency()
-        {
-            int iNumLogfPts = (origionalDataSeries.NumPoints/2)*(mDownsamplingFactor-1)/mDownsamplingFactor +
-                (mNumDecades-1)*(mPointsPerDecade/2*(mDownsamplingFactor-1))/mDownsamplingFactor +
-                mPointsPerDecade/2;
-
-            double[] fLogArr = new double[iNumLogfPts];
-
-            //copy backwards
-            int fIndex = iNumLogfPts-1;      // index to use for the fLogArr
-
-            // copy the origial data frequencies (do not copy this index)
-            int stopIndex = (origionalDataSeries.NumPoints / 2) / mDownsamplingFactor;
-
-            for (int i = origionalDataSeries.NumPoints / 2-1; i >= stopIndex; i--)
-            {
-                fLogArr[fIndex] = origionalDataSeries.FrequencyHalfArr[i];
-                fIndex--;
-            }
-            
-            // for each decade copy out the frequencies
-            stopIndex = (mPointsPerDecade / 2) / mDownsamplingFactor;
-
-            for (int i = 0; i < (mNumDecades - 1); i++)
-            {                
-                for (int j = mPointsPerDecade/2 - 1; j >= stopIndex; j--)
-                {
-                    fLogArr[fIndex] = downsampledNodes[i].FrequencyHalfArr[j];
-                    fIndex--;
-                }
-            }
-
-            for (int j = mPointsPerDecade/2 -1; j >= 0; j--)
-            {
-                fLogArr[fIndex] = downsampledNodes[mNumDecades - 1].FrequencyHalfArr[j];
-                fIndex--;
-            }
-
-            return (fLogArr);
-        }
-
-        private double[] GetDownsampledY_fLog()
-        {
-            int iNumLogfPts = mFLogArr.Length;
-
-            double[] y_fLog = new double[iNumLogfPts];
-
-            //copy backwards
-            int yIndex = iNumLogfPts - 1;      // index to use for the fLogArr
-
-            // update the FFT first
-            origionalDataSeries.UpdateFFT();
-            // copy the origial data frequencies (do not copy this index)
-            int stopIndex = (origionalDataSeries.NumPoints / 2) / mDownsamplingFactor;
-            for (int i = origionalDataSeries.NumPoints / 2 - 1; i >= stopIndex; i--)
-            {
-                double[] y_temp = origionalDataSeries.YAbs_fHalf;
-                y_fLog[yIndex] = y_temp[i];
-                yIndex--;
-            }
-
-            // for each decade copy out the frequencies
-            stopIndex = (mPointsPerDecade / 2) / mDownsamplingFactor;
-
-            for (int i = 0; i < (mNumDecades - 1); i++)
-            {
-                downsampledNodes[i].UpdateFFT();        // update the fft for this node
-                for (int j = mPointsPerDecade / 2 - 1; j >= stopIndex; j--)
-                {
-                    double[] y_temp = downsampledNodes[i].YAbs_fHalf;
-                    y_fLog[yIndex] = y_temp[j];
-                    yIndex--;
-                }
-            }
-
-            downsampledNodes[mNumDecades - 1].UpdateFFT();
-            for (int j = mPointsPerDecade / 2 - 1; j >= 0; j--)
-            {
-                double[] y_temp = downsampledNodes[mNumDecades - 1].YAbs_fHalf;
-                y_fLog[yIndex] = y_temp[j];
-                yIndex--;
-            }
-
-            return (y_fLog);
-        }
-    }
-
-    public class DataSeries
-    {
-        // related to the data
-        private double[] tArr;
-        private double[] fArr;
-        private double[] fHalfArr; 
-        protected double[] y_t;
-        private bool bUpdateFFT = false;
-        private double[] yAbs_f;
-        private double[] yReal_f;
-        private double[] yImag_f;
-        protected int ptIndex = 0;
-        private int mNumPts;
-        private double fSample;
-        private double mResistance;
-
-        // the transformer
-        private RealFourierTransformation rftObj = new RealFourierTransformation(TransformationConvention.Matlab);
-
-        AmpUnits mAmpUnits;
-
-        public DataSeries(int numPts, double sampleRate, AmpUnits fourierAmpUnits, double resistance)
-        {
-            mNumPts = numPts;
-            fSample = sampleRate;
-
-            // create the data arrays.
-            CreateTimeArr();
-            fArr = rftObj.GenerateFrequencyScale(fSample, numPts);
-            fHalfArr = GetFreqHalfArr(fArr);
-
-            y_t = new double[numPts];
-            mAmpUnits = fourierAmpUnits;
-            mResistance = resistance;
-            UpdateFFT();
-        }
-
-        public DataSeries(int numPts, double sampleRate, AmpUnits fourierAmpUnits, double resistance, bool updateFFT)
-        {
-            mNumPts = numPts;
-            fSample = sampleRate;
-
-            // create the data arrays.
-            CreateTimeArr();
-            fArr = rftObj.GenerateFrequencyScale(fSample, numPts);
-            fHalfArr = GetFreqHalfArr(fArr);
-
-            y_t = new double[numPts];
-            mAmpUnits = fourierAmpUnits;
-            mResistance = resistance;
-            UpdateFFT();
-
-            bUpdateFFT = updateFFT;
-        }
-
-        public double[] Y_t
-        {
-            get
-            {
-                return (y_t);
-            }
-            set
-            {
-                y_t = value;
-
-                if (bUpdateFFT)
-                    UpdateFFT();
-            }
-        }
-
-        public double[] TimeArr
-        {
-            get
-            {
-                return (tArr);
-            }
-        }
-
-        public double[] FrequencyArr
-        {
-            get
-            {
-                return (fArr);
-            }   
-        }
-
-        public double[] FrequencyHalfArr
-        {
-            get
-            {
-                return (fHalfArr);
-            }
-        }
-
-        public int NumPoints
-        {
-            get
-            {
-                return (mNumPts);
-            }
-            set
-            {
-                mNumPts = value;
-                // create the data arrays.
-                CreateTimeArr();
-                fArr = rftObj.GenerateFrequencyScale(fSample, mNumPts);
-                fHalfArr = GetFreqHalfArr(fArr);
-                // update FFT
-                UpdateFFT();
-            }
-        }
-
-        public double SampleRate
-        {
-            get
-            {
-                return (fSample);
-            }
-            set
-            {
-                fSample = value;
-                // Update the time and frequency arrays
-                // create the data arrays.
-                CreateTimeArr();
-                fArr = rftObj.GenerateFrequencyScale(fSample, mNumPts);
-                fHalfArr = GetFreqHalfArr(fArr);
-
-            }
-        }
-
-        public double[] YAbs_f
-        {
-            get
-            {
-                return (yAbs_f);
-            }
-        }
-
-        public double [] YAbs_fHalf
-        {
-            get
-            {
-                double[] halfArr = new double[yAbs_f.Length / 2];
-                for (int i = 0; i < (yAbs_f.Length / 2); i++)
-                {
-                    halfArr[i] = yAbs_f[i+1];
-                }
-
-                return (halfArr);
-            }
-        }
-
-            public void UpdateFFT()
-        {           
-            rftObj.TransformForward(Y_t, out yReal_f, out yImag_f);
-            // any math that needs to be done should just be done in this function
-            yAbs_f = GetModulous(yReal_f, yImag_f);
-            // TODO: Implement Phase retrevial
-        }
-
-        public virtual void AddPoint(double pt)
-        {
-            y_t[ptIndex] = pt;
-
-            ptIndex++;
-            // check that we haven't reached the end of the array
-            if (ptIndex >= mNumPts)
-                ptIndex = 0;
-        }
-
-        public int PtIndex
-        {
-            get
-            {
-                return (ptIndex);
-            }
-
-            set
-            {
-                ptIndex = value;
-            }
-        }
-
-        private void CreateTimeArr()
-        {
-            tArr = new double[mNumPts];
-
-            tArr[0] = 0;
-            double tSample = 1 / fSample;     // find the time between samples
-
-            for (int i = 1; i < mNumPts; i++)
-            {
-                tArr[i] = tArr[i - 1] + tSample;
-            }
-        }
-
-        private double[] GetModulous(double[] realArr, double[] imagArr)
-        {
-            double scale_factor = .5 / (Convert.ToDouble(realArr.Length)); // this scale factor asummes the sampled window is repeated for a full second
-
-            // the scale factor is need because of implicit windowing of the transform                    
-            double[] modArr = new double[realArr.Length];
-
-            /*
-            maxBroadArr[0] = -1E8;
-            maxBroadArr[1] = -1E8;
-            maxBroadArr[2] = -1E8;
-
-            */
-            switch (mAmpUnits)
-            {
-                case AmpUnits.dBmV:
-                    // overwrite the scale factor with the addition for dBmV
-                    scale_factor = 20 * Math.Log10(scale_factor) + 60;
-
-                    for (int i = 0; i < realArr.Length; i++)
-                    {
-                        modArr[i] = 10 * Math.Log10((realArr[i] * realArr[i] + imagArr[i] * imagArr[i])) + scale_factor;
-                        // Check that the abs was not zero
-                        if (modArr[i] < -120)
-                            modArr[i] = -120;
-                        
-                        /* Max Capture Code
-                        if (graphNum == 1)
-                        {
-                            if (modArr[i] > maxBroadArr[0])
-                                maxBroadArr[0] = modArr[i];
-                            else if (modArr[i] > maxBroadArr[1])
-                                maxBroadArr[1] = modArr[i];
-                            else if (modArr[i] > maxBroadArr[2])
-                                maxBroadArr[2] = modArr[i];
-                        }
-                        */ 
-                    }
-                    break;
-
-                case AmpUnits.V:
-                    for (int i = 0; i < realArr.Length; i++)
-                    {
-                        modArr[i] = scale_factor * Math.Sqrt((realArr[i] * realArr[i] + imagArr[i] * imagArr[i]));
-                        /* Max Capture Code
-                        if (graphNum == 1)
-                        {
-                            if (modArr[i] > maxBroadArr[0])
-                                maxBroadArr[0] = modArr[i];
-                            else if (modArr[i] > maxBroadArr[1])
-                                maxBroadArr[1] = modArr[i];
-                            else if (modArr[i] > maxBroadArr[2])
-                                maxBroadArr[2] = modArr[i];
-                        }*/
-                    }
-                    break;
-
-                case AmpUnits.dBm:
-                    // overwrite scale factor with the addtion factor for dBm
-                    scale_factor = 20 * Math.Log10(scale_factor) + -10 * Math.Log10(mResistance) + 30;
-
-                    for (int i = 0; i < realArr.Length; i++)
-                    {
-                        modArr[i] = 10 * Math.Log10(realArr[i] * realArr[i] + imagArr[i] * imagArr[i]) + scale_factor;
-                        // Check that the abs was not zero
-                        if (modArr[i] < -120)
-                            modArr[i] = -120;
-
-                        /* Max Caputure Code
-                        if (graphNum == 1)
-                        {
-                            if (modArr[i] > maxBroadArr[0])
-                                maxBroadArr[0] = modArr[i];
-                            else if (modArr[i] > maxBroadArr[1])
-                                maxBroadArr[1] = modArr[i];
-                            else if (modArr[i] > maxBroadArr[2])
-                                maxBroadArr[2] = modArr[i];
-                        }
-                        */
-                    }
-                    break;
-
-            }
-
-            return (modArr);
-        }
-
-        private double[] GetFreqHalfArr(double[] fArr)
-        {
-            double [] retArr = new double[fArr.Length/2];
-
-            for (int i = 0; i < retArr.Length; i++)
-            {
-                retArr[i] = fArr[i+1];
-            }
-
-            return (retArr);
-        }
-    }
-
-    public class DataSeriesNode : DataSeries
-    {
-        private DataSeriesNode mNextNode;
-        private int mDownsamplingFactor = 0;
-
-        public DataSeriesNode(int numPts, double sampleRate, AmpUnits fourierAmpUnits, double resistance, bool updateFFT,
-            int downsamplingFactor, DataSeriesNode nextNode)  : base(numPts, sampleRate, fourierAmpUnits, resistance)      
-        {
-            mNextNode = nextNode;
-            mDownsamplingFactor = downsamplingFactor;
-        }
-
-        public DataSeriesNode NextNode
-        {
-            get
-            {
-                return (mNextNode);
-            }         
-            set
-            {
-                mNextNode = NextNode;
-            }
-         }
-
-        public override void AddPoint(double pt)
-        {
-            // add the point to the array
-            base.y_t[ptIndex] = pt;
-
-            if ((base.ptIndex % mDownsamplingFactor) == (mDownsamplingFactor-1))
-            {
-                if (mNextNode != null)
-                {
-                    // average the last mDowsamplingFactor points and add them to the next node
-                    mNextNode.AddPoint(GetAverageFromDoubleArray(base.y_t,
-                        ptIndex - mDownsamplingFactor+1, mDownsamplingFactor));
-                }
-            }
-
-            base.ptIndex++;
-
-            // reset the point index if it exceeds the length of the array
-            if (base.ptIndex >= base.NumPoints)
-                ptIndex = 0;
-        }
-
-        /// <summary>
-        /// Calculate the average of all elements in a double array.
-        /// </summary>
-        /// <param name="dblArray">The double array to get the 
-        /// average from.</param>
-        /// <returns>The average of the double array</returns>
-        public double GetAverageFromDoubleArray(double[] dblArray, int startIndex, int len)
-        {
-            double dblResult = 0;
-            int endIndex = startIndex + len;
-
-            for (int i = startIndex; i < endIndex; i++)
-            {
-                dblResult += dblArray[i];
-            }
-
-            return dblResult / (len);
-        }
-    }
+    } 
 }

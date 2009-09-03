@@ -42,17 +42,27 @@ namespace Sparrow
                 taskObj.Dispose();
             }
 
-            taskObj = new Task("Task 1");
+            try
+            {
+                taskObj = new Task("Task 1");
 
-            // setup the channel
-            taskObj.AIChannels.CreateVoltageChannel(physicalChannelComboBox.Text, "", AITerminalConfiguration.Differential,
-                Convert.ToDouble(minimumValueNumeric.Value), Convert.ToDouble(maximumValueNumeric.Value), AIVoltageUnits.Volts);
+                // setup the channel
+                taskObj.AIChannels.CreateVoltageChannel(physicalChannelComboBox.Text, "", AITerminalConfiguration.Differential,
+                        Convert.ToDouble(minimumValueNumeric.Value), Convert.ToDouble(maximumValueNumeric.Value), AIVoltageUnits.Volts);
+                // setup the timing, last value is the number of samples to use in the buffer
+                taskObj.Timing.ConfigureSampleClock("", Convert.ToDouble(rateNumeric.Value),
+                    SampleClockActiveEdge.Rising, SampleQuantityMode.ContinuousSamples, 2 * Convert.ToInt32(samplesPerChannelNumeric.Value));
 
-            // setup the timing, last value is the number of samples to use in the buffer
-            taskObj.Timing.ConfigureSampleClock("", Convert.ToDouble(rateNumeric.Value),
-                SampleClockActiveEdge.Rising, SampleQuantityMode.ContinuousSamples, 2*Convert.ToInt32(samplesPerChannelNumeric.Value));
-
-            taskObj.Control(TaskAction.Verify);
+                taskObj.Control(TaskAction.Verify);
+            }
+            catch (Exception Ex)
+            {
+                // null out the task object
+                if(taskObj != null)
+                    taskObj.Dispose();
+                // throw the error
+                throw (Ex);
+            }
         }
         
         private void NI6251_Options_Shown(object sender, EventArgs e)

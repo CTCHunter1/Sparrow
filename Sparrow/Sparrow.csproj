@@ -42,6 +42,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataSeries.cs" />
+    <Compile Include="DataSeriesNode.cs" />
+    <Compile Include="Downsampler.cs" />
     <Compile Include="NI6251 Options.cs">
       <SubType>Form</SubType>
     </Compile>
