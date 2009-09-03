@@ -27,7 +27,11 @@ namespace Sparrow
 
         private RealFourierTransformation rftObj;
 
-        private AnalogWaveform<double> ch1WaveformFast;               
+        private AnalogWaveform<double> ch1WaveformFast;
+
+        DataSeries ch1VObj;
+        DownSampler downSamplerObj; 
+
         double[] ch1VFast_t;
         double[] ch1RealBroad_f;
         double[] ch1ImagBroad_f;
@@ -73,30 +77,25 @@ namespace Sparrow
             {
                 // Get the waveform object
                 ch1WaveformFast = analogInReader.EndReadWaveform(ar);
-                ch1VFast_t = ch1WaveformFast.GetScaledData();      // get array of doubles the values in Volts
-
-                // FFT the data
-                rftObj.TransformForward(ch1VFast_t, out ch1RealBroad_f, out ch1ImagBroad_f);
-                // find the modulous of the data
-                ch1ModBroad_f = GetModulous(ch1RealBroad_f, ch1ImagBroad_f, sparrowOptionsObj.BroadAmpUnits, 1);
-
-                UpdateMax123();
-
-                // update the slower time series with the new points
-                UpdateSlowTimeSeries();
-                // FFT the slow time data
-                rftObj.TransformForward(ch1Vslow_t, out ch1RealNarrow_f, out ch1ImagNarrow_f);
-                ch1ModNarrow_f = GetModulous(ch1RealNarrow_f, ch1ImagNarrow_f, sparrowOptionsObj.NarrowAmpUnits, 2);
+                ch1VObj.Y_t = ch1WaveformFast.GetScaledData();      // get array of doubles the values in Volts
                 
+                ch1VObj.UpdateFFT();
+
+                downSamplerObj.UpdateDownsampledData();
+
                 // create slower waveform by averaging each half of the sampled signal
-                fastTimeGraph.Plot("axis1", tArrFast, ch1VFast_t, Color.Blue);
-                broadFreqGraph.Plot("axis2", fArrBroad, ch1ModBroad_f, Color.Red);
-                slowTimeGraph.Plot("axis3", tArrSlow, ch1Vslow_t, Color.Blue);
-                narrowFreqGraph.Plot("axis4", fArrNarrow, ch1ModNarrow_f, Color.Red);
+                fastTimeGraph.Plot("axis1", ch1VObj.TimeArr, ch1VObj.Y_t, Color.Blue);
+                broadFreqGraph.Plot("axis2", ch1VObj.FrequencyArr, ch1VObj.YAbs_f, Color.Red);                
+                slowTimeGraph.Plot("axis3", downSamplerObj.GetDownsampledDataSeries(3).TimeArr, downSamplerObj.GetDownsampledDataSeries(3).Y_t, Color.Blue);
+
+                downSamplerObj.GetDownsampledDataSeries(3).UpdateFFT();
+
+                narrowFreqGraph.Plot("axis4", downSamplerObj.GetDownsampledDataSeries(3).FrequencyArr, downSamplerObj.GetDownsampledDataSeries(3).YAbs_f, Color.Red);
                 
                 // keep the aquisition running
                 if (aquireData == true)
-                    iAsyncResultObj = analogInReader.BeginReadWaveform(samplesPerChannel, AnalogInCallback, ni6251OptionsObj.TaskObj);
+                    iAsyncResultObj = analogInReader.BeginReadWaveform(ch1VObj.NumPoints, AnalogInCallback, ni6251OptionsObj.TaskObj);
+          
             }
 
             catch (DaqException ex)
@@ -116,7 +115,7 @@ namespace Sparrow
                         StartAquire();
                         break;
                 }                
-            }
+            } 
         }
 
         private void nI6251ToolStripMenuItem_Click(object sender, EventArgs e)
@@ -144,25 +143,17 @@ namespace Sparrow
             // stop any already running aquisitions
             ni6251OptionsObj.TaskObj.Control(TaskAction.Stop);
 
-            // save the rate and the # of samples per channel in case user opens dialog box
-            samplesPerChannel = ni6251OptionsObj.SamplesPerChannel;
-            fSampleRateFast = ni6251OptionsObj.Rate;
-            UpdateAmpUnitLabels();
+            // create the channel 1 data object
+            ch1VObj = new DataSeries(ni6251OptionsObj.SamplesPerChannel, 
+                ni6251OptionsObj.Rate, sparrowOptionsObj.BroadAmpUnits, sparrowOptionsObj.Resistance);
 
-            // create the time and frequency arrays
-            tArrFast = CreateTimeArr(fSampleRateFast, samplesPerChannel);
-            fArrBroad = rftObj.GenerateFrequencyScale(fSampleRateFast, samplesPerChannel);
-            // the slow sampling rate
-            fSampleRateSlow = fSampleRateFast * 2 / samplesPerChannel;
+            UpdateAmpUnitLabels();
             
-            // create time and frequency arrays for slow sampling
-            tArrSlow = CreateTimeArr(fSampleRateSlow, sparrowOptionsObj.NumSlowTimePoints);
-            fArrNarrow = rftObj.GenerateFrequencyScale(fSampleRateSlow, sparrowOptionsObj.NumSlowTimePoints);
-            // allocate memory for slow sampling time array
-            ch1Vslow_t = new double[sparrowOptionsObj.NumSlowTimePoints];
-            halfLen = ni6251OptionsObj.SamplesPerChannel / 2;
-            // reset the slow index index could be anywhere
-            ch1SlowIndex = 0;
+            // create the downsampler object
+            downSamplerObj = new DownSampler(ch1VObj, sparrowOptionsObj.DownsampleFactor,
+                sparrowOptionsObj.PointsPerDecade, sparrowOptionsObj.NumDecades, sparrowOptionsObj.NarrowAmpUnits, sparrowOptionsObj.Resistance);
+
+            downSamplerObj.OrigionalDataSeries = ch1VObj;
 
             // Setup the NI-DAQ for the configured task and start aquisition to the analogCallback
             analogInReader = new AnalogSingleChannelReader(ni6251OptionsObj.TaskObj.Stream);
@@ -216,86 +207,7 @@ namespace Sparrow
             return (complexArr);
         }
 
-        private double[] GetModulous(double[] realArr, double[] imagArr, AmpUnits units, int graphNum)
-        {
-            double scale_factor = .5/(Convert.ToDouble(realArr.Length)); // this scale factor asummes the sampled window is repeated for a full second
-            
-            // the scale factor is need because of implicit windowing of the transform                    
-            double[] modArr = new double[realArr.Length];
 
-            maxBroadArr[0] = -1E8;
-            maxBroadArr[1] = -1E8;
-            maxBroadArr[2] = -1E8;
-
-            switch (units)
-            {
-                case AmpUnits.dBmV:
-                    // overwrite the scale factor with the addition for dBmV
-                    scale_factor = 20 * Math.Log10(scale_factor) + 60;
-
-                    for (int i = 0; i < realArr.Length; i++)
-                    {
-                        modArr[i] = 10 * Math.Log10((realArr[i] * realArr[i] + imagArr[i] * imagArr[i])) + scale_factor;
-                        // Check that the abs was not zero
-                        if (modArr[i] < -120)
-                            modArr[i] = -120;
-
-                        if (graphNum == 1)
-                        {
-                            if(modArr[i] > maxBroadArr[0])
-                                maxBroadArr[0] = modArr[i];
-                            else if(modArr[i] > maxBroadArr[1])
-                                maxBroadArr[1] = modArr[i];
-                            else if(modArr[i] > maxBroadArr[2])
-                                maxBroadArr[2] = modArr[i];
-                        }
-                    }
-                    break;
-
-                case AmpUnits.V:
-                    for (int i = 0; i < realArr.Length; i++)
-                    {
-                        modArr[i] = scale_factor * Math.Sqrt((realArr[i] * realArr[i] + imagArr[i] * imagArr[i]));
-                        if (graphNum == 1)
-                        {
-                            if (modArr[i] > maxBroadArr[0])
-                                maxBroadArr[0] = modArr[i];
-                            else if (modArr[i] > maxBroadArr[1])
-                                maxBroadArr[1] = modArr[i];
-                            else if (modArr[i] > maxBroadArr[2])
-                                maxBroadArr[2] = modArr[i];
-                        }
-                    }
-                    break;
-
-                case AmpUnits.dBm:
-                    // overwrite scale factor with the addtion factor for dBm
-                    scale_factor = 20*Math.Log10(scale_factor) + - 10 * Math.Log10(sparrowOptionsObj.Resistance) + 30;
-
-                    for (int i = 0; i < realArr.Length; i++)
-                    {
-                        modArr[i] = 10*Math.Log10(realArr[i] * realArr[i] + imagArr[i] * imagArr[i]) + scale_factor;
-                        // Check that the abs was not zero
-                        if (modArr[i] < -120)
-                            modArr[i] = -120;
-
-                        if (graphNum == 1)
-                        {
-                            if (modArr[i] > maxBroadArr[0])
-                                maxBroadArr[0] = modArr[i];
-                            else if (modArr[i] > maxBroadArr[1])
-                                maxBroadArr[1] = modArr[i];
-                            else if (modArr[i] > maxBroadArr[2])
-                                maxBroadArr[2] = modArr[i];
-                        }
-
-                    }
-                    break;
-
-               }
-
-            return (modArr);
-        }
 
         /// <summary>
         /// Calculate the average of all elements in a double array.
@@ -374,6 +286,442 @@ namespace Sparrow
             max1Label.Text = maxBroadArr[0].ToString("0.00000");
             max2Label.Text = maxBroadArr[1].ToString("0.00000");
             max3Label.Text = maxBroadArr[2].ToString("0.00000");
+        }
+    }
+
+    public class DownSampler
+    {
+        private int mNumDecades;
+        /// <summary>
+        /// Must be power of 2
+        /// </summary>
+        private int mDownsamplingFactor;
+        int mPointsPerDecade;
+        private DataSeries origionalDataSeries;
+        private DataSeriesNode[] downsampledNodes;
+        AmpUnits ampUnits;
+        double mResistance;
+        
+        // points per update
+        private int pointsPerUpdate = 0;
+
+        public DownSampler(DataSeries origioalDataSeriesObj, int downsamplingFactor, int pointsPerDecade, int numDecadesToDownSample, AmpUnits fourierAmpUnits, double resistance)
+        {
+            origionalDataSeries = origioalDataSeriesObj;
+
+            mNumDecades = numDecadesToDownSample;
+            mDownsamplingFactor = downsamplingFactor;
+            mPointsPerDecade = pointsPerDecade;
+            ampUnits = fourierAmpUnits;
+            mResistance = resistance;
+
+            InitDownsampledDataSeries();
+        }
+
+        public DataSeries OrigionalDataSeries
+        {
+            get
+            {
+                return (origionalDataSeries);
+            }
+            set
+            {
+                origionalDataSeries = value;
+            }
+        }
+
+        public int NumDecades
+        {
+            get
+            {
+                return (mNumDecades);
+            }
+            set
+            {
+                InitDownsampledDataSeries();
+                mNumDecades = value;
+            }
+        }
+
+        public int DownsamplingFactor
+        {
+            get
+            {
+                return(mDownsamplingFactor);
+            }
+            set
+            {
+                InitDownsampledDataSeries();
+                mDownsamplingFactor = value;
+            }
+        }
+
+        public void UpdateDownsampledData()
+        {
+            // because the data is coming in in 2^n multiple powers
+            // and the downsampling factor must be a power of 2
+            // the downsampled data sets can only add 1, 2, 4,.. 2^n points per  update
+            // update the lowest downsampled data series
+            for(int i = 0; i < pointsPerUpdate; i++)
+            {
+                downsampledNodes[0].AddPoint(
+                    downsampledNodes[0].GetAverageFromDoubleArray(
+                    origionalDataSeries.Y_t, i*mDownsamplingFactor, mDownsamplingFactor));    
+            }
+
+        }
+
+        public DataSeries GetDownsampledDataSeries(int decade)
+        {
+            return ((DataSeries) downsampledNodes[decade - 1]);
+        }
+
+        private void InitDownsampledDataSeries()
+        {
+            downsampledNodes = new DataSeriesNode[mNumDecades];
+            
+            // these data series nodes need to be created in reverse order so 
+            // that the previous one can know about the next one
+            for (int i = mNumDecades-1; i >=0 ; i--)
+            {
+                // the last decade has no next node pointer
+                if (i == (mNumDecades - 1))
+                    downsampledNodes[i] = new DataSeriesNode(mPointsPerDecade, origionalDataSeries.SampleRate / (Math.Pow((double)mDownsamplingFactor, (double)(i + 1))),
+                        ampUnits, mResistance, false, mDownsamplingFactor, null);
+
+                else
+                    downsampledNodes[i] = new DataSeriesNode(mPointsPerDecade, origionalDataSeries.SampleRate / (Math.Pow((double)mDownsamplingFactor, (double)(i + 1))),
+                        ampUnits, mResistance, false, mDownsamplingFactor, downsampledNodes[i + 1]);
+                
+            }
+            
+            // calculate the number of points updated per data set
+            pointsPerUpdate = OrigionalDataSeries.Y_t.Length / mDownsamplingFactor;
+
+        }
+
+
+    }
+
+    public class DataSeries
+    {
+        // related to the data
+        private double[] tArr;
+        private double[] fArr;
+        protected double[] y_t;
+        private bool bUpdateFFT = false;
+        private double[] yAbs_f;
+        private double[] yReal_f;
+        private double[] yImag_f;
+        protected int ptIndex = 0;
+        private int mNumPts;
+        private double fSample;
+        private double mResistance;
+
+        // the transformer
+        private RealFourierTransformation rftObj = new RealFourierTransformation(TransformationConvention.Matlab);
+
+        AmpUnits mAmpUnits;
+
+        public DataSeries(int numPts, double sampleRate, AmpUnits fourierAmpUnits, double resistance)
+        {
+            mNumPts = numPts;
+            fSample = sampleRate;
+
+            // create the data arrays.
+            CreateTimeArr();
+            fArr = rftObj.GenerateFrequencyScale(fSample, numPts);
+            
+            y_t = new double[numPts];
+            mAmpUnits = fourierAmpUnits;
+            mResistance = resistance;
+            UpdateFFT();
+        }
+
+        public DataSeries(int numPts, double sampleRate, AmpUnits fourierAmpUnits, double resistance, bool updateFFT)
+        {
+            mNumPts = numPts;
+            fSample = sampleRate;
+
+            // create the data arrays.
+            CreateTimeArr();
+            fArr = rftObj.GenerateFrequencyScale(fSample, numPts);
+
+            y_t = new double[numPts];
+            mAmpUnits = fourierAmpUnits;
+            mResistance = resistance;
+            UpdateFFT();
+
+            bUpdateFFT = updateFFT;
+        }
+
+        public double[] Y_t
+        {
+            get
+            {
+                return (y_t);
+            }
+            set
+            {
+                y_t = value;
+
+                if (bUpdateFFT)
+                    UpdateFFT();
+            }
+        }
+
+        public double[] TimeArr
+        {
+            get
+            {
+                return (tArr);
+            }
+        }
+
+        public double[] FrequencyArr
+        {
+            get
+            {
+                return (fArr);
+            }   
+        }
+
+        public int NumPoints
+        {
+            get
+            {
+                return (mNumPts);
+            }
+            set
+            {
+                mNumPts = value;
+                // create the data arrays.
+                CreateTimeArr();
+                fArr = rftObj.GenerateFrequencyScale(fSample, mNumPts);
+                // update FFT
+                UpdateFFT();
+            }
+        }
+
+        public double SampleRate
+        {
+            get
+            {
+                return (fSample);
+            }
+            set
+            {
+                fSample = value;
+                // Update the time and frequency arrays
+                // create the data arrays.
+                CreateTimeArr();
+                fArr = rftObj.GenerateFrequencyScale(fSample, mNumPts);
+            }
+        }
+
+        public double[] YAbs_f
+        {
+            get
+            {
+                return (yAbs_f);
+            }
+        }
+
+        public void UpdateFFT()
+        {           
+            rftObj.TransformForward(Y_t, out yReal_f, out yImag_f);
+            // any math that needs to be done should just be done in this function
+            yAbs_f = GetModulous(yReal_f, yImag_f);
+            // TODO: Implement Phase retrevial
+        }
+
+        public virtual void AddPoint(double pt)
+        {
+            y_t[ptIndex] = pt;
+
+            ptIndex++;
+            // check that we haven't reached the end of the array
+            if (ptIndex >= mNumPts)
+                ptIndex = 0;
+        }
+
+        public int PtIndex
+        {
+            get
+            {
+                return (ptIndex);
+            }
+
+            set
+            {
+                ptIndex = value;
+            }
+        }
+
+        private void CreateTimeArr()
+        {
+            tArr = new double[mNumPts];
+
+            tArr[0] = 0;
+            double tSample = 1 / fSample;     // find the time between samples
+
+            for (int i = 1; i < mNumPts; i++)
+            {
+                tArr[i] = tArr[i - 1] + tSample;
+            }
+        }
+
+        private double[] GetModulous(double[] realArr, double[] imagArr)
+        {
+            double scale_factor = .5 / (Convert.ToDouble(realArr.Length)); // this scale factor asummes the sampled window is repeated for a full second
+
+            // the scale factor is need because of implicit windowing of the transform                    
+            double[] modArr = new double[realArr.Length];
+
+            /*
+            maxBroadArr[0] = -1E8;
+            maxBroadArr[1] = -1E8;
+            maxBroadArr[2] = -1E8;
+
+            */
+            switch (mAmpUnits)
+            {
+                case AmpUnits.dBmV:
+                    // overwrite the scale factor with the addition for dBmV
+                    scale_factor = 20 * Math.Log10(scale_factor) + 60;
+
+                    for (int i = 0; i < realArr.Length; i++)
+                    {
+                        modArr[i] = 10 * Math.Log10((realArr[i] * realArr[i] + imagArr[i] * imagArr[i])) + scale_factor;
+                        // Check that the abs was not zero
+                        if (modArr[i] < -120)
+                            modArr[i] = -120;
+                        
+                        /* Max Capture Code
+                        if (graphNum == 1)
+                        {
+                            if (modArr[i] > maxBroadArr[0])
+                                maxBroadArr[0] = modArr[i];
+                            else if (modArr[i] > maxBroadArr[1])
+                                maxBroadArr[1] = modArr[i];
+                            else if (modArr[i] > maxBroadArr[2])
+                                maxBroadArr[2] = modArr[i];
+                        }
+                        */ 
+                    }
+                    break;
+
+                case AmpUnits.V:
+                    for (int i = 0; i < realArr.Length; i++)
+                    {
+                        modArr[i] = scale_factor * Math.Sqrt((realArr[i] * realArr[i] + imagArr[i] * imagArr[i]));
+                        /* Max Capture Code
+                        if (graphNum == 1)
+                        {
+                            if (modArr[i] > maxBroadArr[0])
+                                maxBroadArr[0] = modArr[i];
+                            else if (modArr[i] > maxBroadArr[1])
+                                maxBroadArr[1] = modArr[i];
+                            else if (modArr[i] > maxBroadArr[2])
+                                maxBroadArr[2] = modArr[i];
+                        }*/
+                    }
+                    break;
+
+                case AmpUnits.dBm:
+                    // overwrite scale factor with the addtion factor for dBm
+                    scale_factor = 20 * Math.Log10(scale_factor) + -10 * Math.Log10(mResistance) + 30;
+
+                    for (int i = 0; i < realArr.Length; i++)
+                    {
+                        modArr[i] = 10 * Math.Log10(realArr[i] * realArr[i] + imagArr[i] * imagArr[i]) + scale_factor;
+                        // Check that the abs was not zero
+                        if (modArr[i] < -120)
+                            modArr[i] = -120;
+
+                        /* Max Caputure Code
+                        if (graphNum == 1)
+                        {
+                            if (modArr[i] > maxBroadArr[0])
+                                maxBroadArr[0] = modArr[i];
+                            else if (modArr[i] > maxBroadArr[1])
+                                maxBroadArr[1] = modArr[i];
+                            else if (modArr[i] > maxBroadArr[2])
+                                maxBroadArr[2] = modArr[i];
+                        }
+                        */
+                    }
+                    break;
+
+            }
+
+            return (modArr);
+        }
+    }
+
+    public class DataSeriesNode : DataSeries
+    {
+        private DataSeriesNode mNextNode;
+        private int mDownsamplingFactor = 0;
+
+        public DataSeriesNode(int numPts, double sampleRate, AmpUnits fourierAmpUnits, double resistance, bool updateFFT,
+            int downsamplingFactor, DataSeriesNode nextNode)  : base(numPts, sampleRate, fourierAmpUnits, resistance)      
+        {
+            mNextNode = nextNode;
+            mDownsamplingFactor = downsamplingFactor;
+        }
+
+        public DataSeriesNode NextNode
+        {
+            get
+            {
+                return (mNextNode);
+            }         
+            set
+            {
+                mNextNode = NextNode;
+            }
+         }
+
+        public override void AddPoint(double pt)
+        {
+            // add the point to the array
+            base.y_t[ptIndex] = pt;
+
+            if ((base.ptIndex % mDownsamplingFactor) == (mDownsamplingFactor-1))
+            {
+                if (mNextNode != null)
+                {
+                    // average the last mDowsamplingFactor points and add them to the next node
+                    mNextNode.AddPoint(GetAverageFromDoubleArray(base.y_t,
+                        ptIndex - mDownsamplingFactor+1, mDownsamplingFactor));
+                }
+            }
+
+            base.ptIndex++;
+
+            // reset the point index if it exceeds the length of the array
+            if (base.ptIndex >= base.NumPoints)
+                ptIndex = 0;
+        }
+
+        /// <summary>
+        /// Calculate the average of all elements in a double array.
+        /// </summary>
+        /// <param name="dblArray">The double array to get the 
+        /// average from.</param>
+        /// <returns>The average of the double array</returns>
+        public double GetAverageFromDoubleArray(double[] dblArray, int startIndex, int len)
+        {
+            double dblResult = 0;
+            int endIndex = startIndex + len;
+
+            for (int i = startIndex; i < endIndex; i++)
+            {
+                dblResult += dblArray[i];
+            }
+
+            return dblResult / (len);
         }
     }
 }

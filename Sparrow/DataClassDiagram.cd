@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Font Name="Tahoma" Size="8.25" />
+  <Class Name="Sparrow.DownSampler">
+    <Position X="1" Y="1.5" Width="2.25" />
+    <TypeIdentifier>
+      <FileName>Sparrow.cs</FileName>
+      <HashCode>gAAEAAAAAAQAAAAAABCFBAARBCAAAACAAQAACAAAAAg=</HashCode>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Sparrow.DataSeries">
+    <Position X="3.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <FileName>Sparrow.cs</FileName>
+      <HashCode>BgAEAAAAAAgQAEACJATAQAQCACQAAAAIABAAIAAQAAA=</HashCode>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Sparrow.Sparrow_Options" Collapsed="true">
+    <Position X="0.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <FileName>Sparrow Options.cs</FileName>
+      <HashCode>AAAAAAkAACYAABAgAICAAQATBAAJEACAAgMQABAIgAA=</HashCode>
+    </TypeIdentifier>
+  </Class>
+</ClassDiagram>

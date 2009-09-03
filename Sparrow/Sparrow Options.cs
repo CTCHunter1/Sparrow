@@ -12,8 +12,10 @@ namespace Sparrow
     {
         private int backupBroadIndex;
         private int backupNarrowIndex;
-        private decimal backupNumSlowTimePts;
         private decimal backupResistance;
+        private decimal backupNumDownsampledPtsPow2;
+        private decimal backupDownsapledFactorPow2;
+        private decimal backupNumDecades;
 
         public Sparrow_Options()
         {
@@ -25,10 +27,13 @@ namespace Sparrow
 
         private void cancelButton_Click(object sender, EventArgs e)
         {
+            // restore the backed up settings
             broadSpecUnitsComboBox.SelectedIndex = backupBroadIndex;
             narrowSpecUnitsComboBox.SelectedIndex = backupNarrowIndex;
-            numSlowTimePtsNumeric.Value = backupNumSlowTimePts;
+            numDownsampledPtsPow2Numeric.Value = backupNumDownsampledPtsPow2;
+            downsampleFactorPow2Numeric.Value = backupDownsapledFactorPow2;
             resistanceNumeric.Value = backupResistance;
+            numDecadesNumeric.Value = backupNumDecades;
         }
 
         public AmpUnits BroadAmpUnits
@@ -59,11 +64,19 @@ namespace Sparrow
             }        
         }
 
-        public int NumSlowTimePoints
+        public int PointsPerDecade
         {
             get
             {
-                return (Convert.ToInt32(numSlowTimePtsNumeric.Value));
+                return ((int) Math.Pow(2.0, Convert.ToDouble(numDownsampledPtsPow2Numeric.Value)));
+            }
+        }
+
+        public int DownsampleFactor
+        {
+            get
+            {
+                return ((int) Math.Pow(2.0, Convert.ToDouble(downsampleFactorPow2Numeric.Value)));
             }
         }
 
@@ -72,6 +85,14 @@ namespace Sparrow
             get
             {
                 return (Convert.ToDouble(resistanceNumeric.Value));
+            }        
+        }
+
+        public int NumDecades
+        {
+            get
+            {
+                return (Convert.ToInt32(numDecadesNumeric.Value));
             }
         }
 
@@ -79,8 +100,26 @@ namespace Sparrow
         {
             backupBroadIndex = broadSpecUnitsComboBox.SelectedIndex;
             backupNarrowIndex = narrowSpecUnitsComboBox.SelectedIndex;
-            backupNumSlowTimePts = numSlowTimePtsNumeric.Value;
+            backupNumDownsampledPtsPow2 = numDownsampledPtsPow2Numeric.Value;
+            backupDownsapledFactorPow2 = downsampleFactorPow2Numeric.Value;
             backupResistance = resistanceNumeric.Value;
+            backupNumDecades = numDecadesNumeric.Value;
+
+            // update the power of 2 labels
+            downsampleFactorLabel.Text = Math.Pow(2.0, Convert.ToDouble(downsampleFactorPow2Numeric.Value)).ToString("0");
+            numDownsapledPointsLabel.Text = Math.Pow(2.0, Convert.ToDouble(numDownsampledPtsPow2Numeric.Value)).ToString("0");
         }
+
+        private void numDownsampledPtsPow2Numeric_ValueChanged(object sender, EventArgs e)
+        {
+            numDownsapledPointsLabel.Text = Math.Pow(2.0, Convert.ToDouble(numDownsampledPtsPow2Numeric.Value)).ToString("0");        
+        }
+
+        private void downsampleFactorPow2Numeric_ValueChanged(object sender, EventArgs e)
+        {
+            downsampleFactorLabel.Text = Math.Pow(2.0, Convert.ToDouble(downsampleFactorPow2Numeric.Value)).ToString("0");            
+        }
+
+
     }
 }
