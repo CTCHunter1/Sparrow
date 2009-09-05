@@ -17,6 +17,7 @@ namespace Sparrow
         private decimal backupNumDownsampledPtsPow2;
         private decimal backupDownsapledFactorPow2;
         private decimal backupNumDecades;
+        private bool backupFFTAveraging;
 
         public Sparrow_Options()
         {
@@ -35,6 +36,7 @@ namespace Sparrow
             downsampleFactorPow2Numeric.Value = backupDownsapledFactorPow2;
             resistanceNumeric.Value = backupResistance;
             numDecadesNumeric.Value = backupNumDecades;
+            fftAveragingCheckBox.Checked = backupFFTAveraging;
         }
 
         public AmpUnits BroadAmpUnits
@@ -97,6 +99,14 @@ namespace Sparrow
             }
         }
 
+        public bool FFTAveraging
+        {
+            get
+            {
+                return (fftAveragingCheckBox.Checked);
+            }
+        }
+
         private void View_Options_Shown(object sender, EventArgs e)
         {
             backupBroadIndex = broadSpecUnitsComboBox.SelectedIndex;
@@ -106,6 +116,7 @@ namespace Sparrow
             backupDownsapledFactorPow2 = downsampleFactorPow2Numeric.Value;
             backupResistance = resistanceNumeric.Value;
             backupNumDecades = numDecadesNumeric.Value;
+            backupFFTAveraging = fftAveragingCheckBox.Checked;
 
             // update the power of 2 labels
             downsampleFactorLabel.Text = Math.Pow(2.0, Convert.ToDouble(downsampleFactorPow2Numeric.Value)).ToString("0");

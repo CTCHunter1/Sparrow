@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Windows.Forms;
 using System.Text;
 
 namespace Sparrow
@@ -23,6 +24,8 @@ namespace Sparrow
         // points per update
         private int pointsPerUpdate = 0;
 
+        private bool bFFTAveraging = false;
+
         public DownSampler(DataSeries origioalDataSeriesObj, int downsamplingFactor, int pointsPerDecade, int numDecadesToDownSample, AmpUnits fourierAmpUnits, double resistance)
         {
             origionalDataSeries = origioalDataSeriesObj;
@@ -32,85 +35,10 @@ namespace Sparrow
             mPointsPerDecade = pointsPerDecade;
             ampUnits = fourierAmpUnits;
             mResistance = resistance;
-            InitDownsampledDataSeries();
+            InitDownsampledDataSeriesNodes();
         }
 
-        public DataSeries OrigionalDataSeries
-        {
-            get
-            {
-                return (origionalDataSeries);
-            }
-            set
-            {
-                origionalDataSeries = value;
-            }
-        }
-
-        public int NumDecades
-        {
-            get
-            {
-                return (mNumDecades);
-            }
-            set
-            {
-                InitDownsampledDataSeries();
-                mNumDecades = value;
-            }
-        }
-
-        public int DownsamplingFactor
-        {
-            get
-            {
-                return (mDownsamplingFactor);
-            }
-            set
-            {
-                InitDownsampledDataSeries();
-                mDownsamplingFactor = value;
-            }
-        }
-
-        public double[] DownsampledLogFrequency
-        {
-            get
-            {
-                return (mFLogArr);
-            }
-        }
-
-        public double[] Y_fLog
-        {
-            get
-            {
-                y_logf = GetDownsampledY_fLog();
-                return (y_logf);
-            }
-        }
-
-        public void UpdateDownsampledData()
-        {
-            // because the data is coming in in 2^n multiple powers
-            // and the downsampling factor must be a power of 2
-            // the downsampled data sets can only add 1, 2, 4,.. 2^n points per  update
-            // update the lowest downsampled data series
-            for (int i = 0; i < pointsPerUpdate; i++)
-            {
-                downsampledNodes[0].AddPoint(
-                    downsampledNodes[0].GetAverageFromDoubleArray(
-                    origionalDataSeries.Y_t, i * mDownsamplingFactor, mDownsamplingFactor));
-            }
-
-        }
-
-        public DataSeries GetDownsampledDataSeries(int decade)
-        {
-            return ((DataSeries)downsampledNodes[decade - 1]);
-        }
-
-        private void InitDownsampledDataSeries()
+        private void InitDownsampledDataSeriesNodes()
         {
             downsampledNodes = new DataSeriesNode[mNumDecades];
 
@@ -134,6 +62,128 @@ namespace Sparrow
 
             mFLogArr = CreateDownsampledFrequency();
         }
+
+        public DataSeries OrigionalDataSeries
+        {
+            get
+            {
+                return (origionalDataSeries);
+            }
+            set
+            {
+                origionalDataSeries = value;
+            }
+        }
+
+        public int NumDecades
+        {
+            get
+            {
+                return (mNumDecades);
+            }
+            set
+            {
+                InitDownsampledDataSeriesNodes();
+                mNumDecades = value;
+            }
+        }
+
+        public int DownsamplingFactor
+        {
+            get
+            {
+                return (mDownsamplingFactor);
+            }
+            set
+            {
+                InitDownsampledDataSeriesNodes();
+                mDownsamplingFactor = value;
+            }
+        }
+
+        public double[] DownsampledLogFrequency
+        {
+            get
+            {
+                return (mFLogArr);
+            }
+        }
+
+        public int PointsPerDecade
+        {
+            get
+            {
+                return (mPointsPerDecade);
+            }
+        }
+
+        public double[] Y_fLog
+        {
+            get
+            {
+                y_logf = GetDownsampledY_fLog();
+                return (y_logf);
+            }
+        }
+
+        public double[] YAvg_fLog
+        {
+            get
+            {
+                y_logf = GetDownsampledYAvg_fLog();
+                return (y_logf);
+            }
+        }
+
+        public AmpUnits FrequencyUnits
+        {
+            get             
+            {
+                return (ampUnits);
+            }
+        }
+
+        public bool FFTAveraging
+        {
+            get
+            {
+                return (bFFTAveraging);
+            }
+            set
+            {
+                for (int i = 0; i < downsampledNodes.Length; i++)
+                {
+                    downsampledNodes[i].FFTAveraging = value;
+                }
+
+                bFFTAveraging = value;
+            }
+        }
+
+        public void UpdateDownsampledData(ToolStripProgressBar pBar)
+        {
+            if (bFFTAveraging)
+                origionalDataSeries.UpdateFFTAverage();
+
+            // because the data is coming in in 2^n multiple powers
+            // and the downsampling factor must be a power of 2
+            // the downsampled data sets can only add 1, 2, 4,.. 2^n points per  update
+            // update the lowest downsampled data series
+            for (int i = 0; i < pointsPerUpdate; i++)
+            {
+                downsampledNodes[0].AddPoint(
+                    downsampledNodes[0].GetAverageFromDoubleArray(
+                    origionalDataSeries.Y_t, i * mDownsamplingFactor, mDownsamplingFactor), pBar);
+            }
+
+        }
+
+        public DataSeries GetDownsampledDataSeries(int decade)
+        {
+            return ((DataSeries)downsampledNodes[decade - 1]);
+        }
+
+
 
         private double[] CreateDownsampledFrequency()
         {
@@ -214,6 +264,51 @@ namespace Sparrow
             for (int j = mPointsPerDecade / 2 - 1; j >= 0; j--)
             {
                 double[] y_temp = downsampledNodes[mNumDecades - 1].YAbs_fHalf;
+                y_fLog[yIndex] = y_temp[j];
+                yIndex--;
+            }
+
+            return (y_fLog);
+        }
+
+        private double[] GetDownsampledYAvg_fLog()
+        {
+            int iNumLogfPts = mFLogArr.Length;
+
+            double[] y_fLog = new double[iNumLogfPts];
+
+            //copy backwards
+            int yIndex = iNumLogfPts - 1;      // index to use for the fLogArr
+
+            // update the FFT first
+            origionalDataSeries.UpdateFFT();
+            // copy the origial data frequencies (do not copy this index)
+            int stopIndex = (origionalDataSeries.NumPoints / 2) / mDownsamplingFactor;
+            for (int i = origionalDataSeries.NumPoints / 2 - 1; i >= stopIndex; i--)
+            {
+                double[] y_temp = origionalDataSeries.YAbsAvg_fHalf;
+                y_fLog[yIndex] = y_temp[i];
+                yIndex--;
+            }
+
+            // for each decade copy out the frequencies
+            stopIndex = (mPointsPerDecade / 2) / mDownsamplingFactor;
+
+            for (int i = 0; i < (mNumDecades - 1); i++)
+            {
+                downsampledNodes[i].UpdateFFT();        // update the fft for this node
+                for (int j = mPointsPerDecade / 2 - 1; j >= stopIndex; j--)
+                {
+                    double[] y_temp = downsampledNodes[i].YAbsAvg_fHalf;
+                    y_fLog[yIndex] = y_temp[j];
+                    yIndex--;
+                }
+            }
+
+            downsampledNodes[mNumDecades - 1].UpdateFFT();
+            for (int j = mPointsPerDecade / 2 - 1; j >= 0; j--)
+            {
+                double[] y_temp = downsampledNodes[mNumDecades - 1].YAbsAvg_fHalf;
                 y_fLog[yIndex] = y_temp[j];
                 yIndex--;
             }

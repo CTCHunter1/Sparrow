@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Windows.Forms;
 using System.Text;
 
 namespace Sparrow
@@ -29,7 +30,7 @@ namespace Sparrow
             }
         }
 
-        public override void AddPoint(double pt)
+        public override void AddPoint(double pt, ToolStripProgressBar pBar)
         {
             // add the point to the array
             base.y_t[ptIndex] = pt;
@@ -40,15 +41,29 @@ namespace Sparrow
                 {
                     // average the last mDowsamplingFactor points and add them to the next node
                     mNextNode.AddPoint(GetAverageFromDoubleArray(base.y_t,
-                        ptIndex - mDownsamplingFactor + 1, mDownsamplingFactor));
+                        ptIndex - mDownsamplingFactor + 1, mDownsamplingFactor), pBar);
+                }
+                else
+                {
+                    // stop when 100% reached
+                    if (pBar.Value < base.mNumPts)
+                        pBar.Value = base.ptIndex+1;                
                 }
             }
 
             base.ptIndex++;
 
             // reset the point index if it exceeds the length of the array
-            if (base.ptIndex >= base.NumPoints)
+            if (base.ptIndex >= base.mNumPts)
+            {
                 ptIndex = 0;
+                // if FFT averaging is on update the FFT then update the average
+                if (base.bFFTAveraging == true)
+                {
+                    base.UpdateFFT();
+                    base.UpdateFFTAverage();
+                }
+            }
         }
 
         /// <summary>

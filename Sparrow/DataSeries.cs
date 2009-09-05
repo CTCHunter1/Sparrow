@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Windows.Forms;
 using System.Text;
 
 using MathNet.Numerics;
@@ -18,8 +19,16 @@ namespace Sparrow
         private double[] yAbs_f;
         private double[] yReal_f;
         private double[] yImag_f;
+        // new variables for FFT averaging
+        protected bool bFFTAveraging = false;
+        private double[] yRealAvg_f;
+        private double[] yImagAvg_f;
+        private double[] yAbsAvg_f;
+        int numFFTs = 0;        // number of points averaged in for yRealAvg_f
+        int pointsToFFTAverage;
+
         protected int ptIndex = 0;
-        private int mNumPts;
+        protected int mNumPts;
         private double fSample;
         private double mResistance;
 
@@ -36,11 +45,17 @@ namespace Sparrow
             // create the data arrays.
             CreateTimeArr();
             fArr = rftObj.GenerateFrequencyScale(fSample, numPts);
-            fHalfArr = GetFreqHalfArr(fArr);
+            fHalfArr = GetHalfArr(fArr);
 
             y_t = new double[numPts];
             mAmpUnits = fourierAmpUnits;
             mResistance = resistance;
+
+            // create the averaging arrays
+            yRealAvg_f = new double[numPts];
+            yImagAvg_f = new double[numPts];
+            yAbsAvg_f = new double[numPts];
+
             UpdateFFT();
         }
 
@@ -52,12 +67,18 @@ namespace Sparrow
             // create the data arrays.
             CreateTimeArr();
             fArr = rftObj.GenerateFrequencyScale(fSample, numPts);
-            fHalfArr = GetFreqHalfArr(fArr);
+            fHalfArr = GetHalfArr(fArr);
 
             y_t = new double[numPts];
             mAmpUnits = fourierAmpUnits;
-            mResistance = resistance;
+            mResistance = resistance;           
+
             UpdateFFT();
+
+            // create the averaging arrays
+            yRealAvg_f = new double[numPts];
+            yImagAvg_f = new double[numPts];
+            yAbsAvg_f = new double[numPts];
 
             bUpdateFFT = updateFFT;
         }
@@ -113,7 +134,7 @@ namespace Sparrow
                 // create the data arrays.
                 CreateTimeArr();
                 fArr = rftObj.GenerateFrequencyScale(fSample, mNumPts);
-                fHalfArr = GetFreqHalfArr(fArr);
+                fHalfArr = GetHalfArr(fArr);
                 // update FFT
                 UpdateFFT();
             }
@@ -132,7 +153,7 @@ namespace Sparrow
                 // create the data arrays.
                 CreateTimeArr();
                 fArr = rftObj.GenerateFrequencyScale(fSample, mNumPts);
-                fHalfArr = GetFreqHalfArr(fArr);
+                fHalfArr = GetHalfArr(fArr);
 
             }
         }
@@ -145,17 +166,55 @@ namespace Sparrow
             }
         }
 
+        public double[] YAbsAvg_f
+        {
+            get
+            {
+                return (yAbsAvg_f);
+            }
+        }
+
         public double[] YAbs_fHalf
         {
             get
             {
+                return GetHalfArr(yAbs_f);
+                /*
                 double[] halfArr = new double[yAbs_f.Length / 2];
                 for (int i = 0; i < (yAbs_f.Length / 2); i++)
                 {
                     halfArr[i] = yAbs_f[i + 1];
                 }
 
-                return (halfArr);
+                return (halfArr);*/
+            }
+        }
+
+        public double[] YAbsAvg_fHalf
+        {
+            get
+            {
+                return (GetHalfArr(yAbsAvg_f));
+            }
+        }
+
+        public AmpUnits FrequncyUnits
+        {
+            get 
+            {
+                return mAmpUnits;    
+            }
+        }
+
+        public bool FFTAveraging
+        {
+            set
+            {
+                bFFTAveraging = value;
+            }
+            get 
+            {
+                return (bFFTAveraging);
             }
         }
 
@@ -167,7 +226,7 @@ namespace Sparrow
             // TODO: Implement Phase retrevial
         }
 
-        public virtual void AddPoint(double pt)
+        public virtual void AddPoint(double pt, ToolStripProgressBar bPar)
         {
             y_t[ptIndex] = pt;
 
@@ -268,8 +327,8 @@ namespace Sparrow
                     {
                         modArr[i] = 10 * Math.Log10(realArr[i] * realArr[i] + imagArr[i] * imagArr[i]) + scale_factor;
                         // Check that the abs was not zero
-                        if (modArr[i] < -120)
-                            modArr[i] = -120;
+                        if (modArr[i] < -140)
+                            modArr[i] = -140;
 
                         /* Max Caputure Code
                         if (graphNum == 1)
@@ -290,16 +349,29 @@ namespace Sparrow
             return (modArr);
         }
 
-        private double[] GetFreqHalfArr(double[] fArr)
+        private double[] GetHalfArr(double[] arr)
         {
-            double[] retArr = new double[fArr.Length / 2];
+            double[] retArr = new double[arr.Length / 2];
 
             for (int i = 0; i < retArr.Length; i++)
             {
-                retArr[i] = fArr[i + 1];
+                retArr[i] = arr[i + 1];
             }
 
             return (retArr);
+        }
+
+        public void UpdateFFTAverage()
+        {
+            // add the latest value of the fft to the accumulator, then average each point
+            for (int i = 0; i < yReal_f.Length; i++)
+            {
+                yRealAvg_f[i] = (numFFTs * yRealAvg_f[i] + yReal_f[i]) / (double)(numFFTs + 1);
+                yImagAvg_f[i] = (numFFTs * yImagAvg_f[i] + yImag_f[i]) / (double)(numFFTs + 1);
+            }
+            numFFTs++;
+
+            yAbsAvg_f = GetModulous(yRealAvg_f, yImagAvg_f);
         }
     }
 }

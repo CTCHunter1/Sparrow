@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Text;
+using System.Reflection;
 using System.Windows.Forms;
 
 using NationalInstruments;
@@ -11,6 +13,7 @@ using NationalInstruments.DAQmx;
 
 using MathNet.Numerics;
 using MathNet.Numerics.Transformations;
+
 
 namespace Sparrow
 {
@@ -24,6 +27,7 @@ namespace Sparrow
 
         private NI6251_Options ni6251OptionsObj;
         private Sparrow_Options sparrowOptionsObj;
+        SaveFileDialog saveFileDialogObj;
 
         private RealFourierTransformation rftObj;
 
@@ -79,8 +83,8 @@ namespace Sparrow
                 // Get the waveform object
                 ch1WaveformFast = analogInReader.EndReadWaveform(ar);
                 ch1VObj.Y_t = ch1WaveformFast.GetScaledData();      // get array of doubles the values in Volts
-                               
-                downSamplerObj.UpdateDownsampledData();
+
+                downSamplerObj.UpdateDownsampledData(toolStripProgressBar);
 
                 // Only Update the graphs when the display update bool is true
                 if (bDisplayUpdate == true)
@@ -110,6 +114,7 @@ namespace Sparrow
                     }
               
                     freqGraph1.Semilogx("axis1", downSamplerObj.DownsampledLogFrequency, downSamplerObj.Y_fLog, Color.Red);
+                    freqGraph1.Semilogx("axis2", downSamplerObj.DownsampledLogFrequency, downSamplerObj.YAvg_fLog, Color.Blue);
                     bDisplayUpdate = false;
                 }
 
@@ -182,13 +187,18 @@ namespace Sparrow
                 ch1VObj = new DataSeries(ni6251OptionsObj.SamplesPerChannel,
                     ni6251OptionsObj.Rate, sparrowOptionsObj.BroadAmpUnits, sparrowOptionsObj.Resistance);
 
+                ch1VObj.FFTAveraging = sparrowOptionsObj.FFTAveraging;
+
                 UpdateAmpUnitLabels();
 
                 // create the downsampler object
                 downSamplerObj = new DownSampler(ch1VObj, sparrowOptionsObj.DownsampleFactor,
                     sparrowOptionsObj.PointsPerDecade, sparrowOptionsObj.NumDecades, sparrowOptionsObj.BroadAmpUnits, sparrowOptionsObj.Resistance);
 
+                toolStripProgressBar.Maximum = downSamplerObj.PointsPerDecade;
+
                 downSamplerObj.OrigionalDataSeries = ch1VObj;
+                downSamplerObj.FFTAveraging = sparrowOptionsObj.FFTAveraging;
 
                 // Setup the NI-DAQ for the configured task and start aquisition to the analogCallback
                 analogInReader = new AnalogSingleChannelReader(ni6251OptionsObj.TaskObj.Stream);
@@ -212,6 +222,8 @@ namespace Sparrow
 
         private void StopAquire()
         {
+            toolStripProgressBar.Value = 0;
+
             if (aquireData == true)
             {
                 aquireData = false;
@@ -358,7 +370,113 @@ namespace Sparrow
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            StreamWriter streamWriterObj;
+
+            if (saveFileDialogObj == null)
+            {
+                saveFileDialogObj = new SaveFileDialog();
+            }
+
+            if (saveFileDialogObj.ShowDialog() == DialogResult.OK)
+            {
+                try
+                {
+                    // Open the file
+                    streamWriterObj = new StreamWriter(saveFileDialogObj.OpenFile());
+
+                    WriteDataFile(streamWriterObj);
+
+                    streamWriterObj.Close();
+                }
+                catch (IOException Ex)
+                {
+                    MessageBox.Show(Ex.Message);
+                }
+            }
+        }
+
+        private void WriteDataFile(StreamWriter streamWriterObj)
+        {
+            
+            streamWriterObj.NewLine = "\r\n";
+            streamWriterObj.WriteLine("Timestamp:," + DateTime.Now);
+            streamWriterObj.WriteLine("Title:," + "Sparrow Data File");
+            streamWriterObj.WriteLine("Sample Rate:,{0:E}", ch1VObj.SampleRate);
+            streamWriterObj.WriteLine("Number of Points:,{0}", ch1VObj.NumPoints);
+            streamWriterObj.WriteLine("Downsampling Factor M:,{0}", downSamplerObj.DownsamplingFactor);
+            streamWriterObj.WriteLine("Points Per Decade:,{0}", downSamplerObj.PointsPerDecade);
+
+            double[] y_fLogTemp = downSamplerObj.Y_fLog;
+            double[] y_fLogTemp2 = downSamplerObj.YAvg_fLog;  
+
+            int maxLength = y_fLogTemp.Length;
+
+            if(maxLength < ch1VObj.NumPoints)
+                maxLength = ch1VObj.NumPoints;
+
+            if(maxLength < downSamplerObj.PointsPerDecade)
+                maxLength = downSamplerObj.PointsPerDecade;
+
+            // write the header
+            streamWriterObj.Write("Frequency Log (Hz),");
+            streamWriterObj.Write("Magnitude (" + downSamplerObj.FrequencyUnits.ToString() + "),");
+            streamWriterObj.Write("Magnitude Avg (" + downSamplerObj.FrequencyUnits.ToString() + "),");
+            streamWriterObj.Write("Channel 1 Time (s),");
+            streamWriterObj.Write("Channel 1 (V),");
+            streamWriterObj.Write("Channel 1 Freq (Hz),");
+            streamWriterObj.Write("Channel 1 (" + ch1VObj.FrequncyUnits.ToString() + "),");
+            streamWriterObj.Write("Channel 1 Avg(" + ch1VObj.FrequncyUnits.ToString() + "),");
+
+            for(int i = 1; i <= downSamplerObj.NumDecades; i++)
+            {
+                streamWriterObj.Write("Dec {0} Time (s),", i);            
+                streamWriterObj.Write("Dec {0} (V),", i);
+                streamWriterObj.Write("Channel {0} Freq (Hz),", i);
+                streamWriterObj.Write("Channel {0} (" + downSamplerObj.FrequencyUnits.ToString() + "),", i);
+                streamWriterObj.Write("Channel {0} Avg (" + downSamplerObj.FrequencyUnits.ToString() + "),", i);
+
+            }
+
+            streamWriterObj.Write("\r\n");
+
+            // write the data
+            for (int i = 0; i < maxLength; i++)
+            {
+                if (i < y_fLogTemp.Length)
+                {
+                    streamWriterObj.Write("{0:E10},", downSamplerObj.DownsampledLogFrequency[i]);
+                    streamWriterObj.Write("{0:E10},", y_fLogTemp[i]);
+                    streamWriterObj.Write("{0:E10},", y_fLogTemp2[i]);
+                }
+                else
+                {
+                    streamWriterObj.Write(",,");
+                }
+
+                if (i < ch1VObj.NumPoints)
+                {
+                    streamWriterObj.Write("{0:E10},", ch1VObj.TimeArr[i]);
+                    streamWriterObj.Write("{0:E10},", ch1VObj.Y_t[i]);
+                    streamWriterObj.Write("{0:E10},", ch1VObj.FrequencyArr[i]);
+                    streamWriterObj.Write("{0:E10},", ch1VObj.YAbs_f[i]);
+                    streamWriterObj.Write("{0:E10},", ch1VObj.YAbsAvg_f[i]);                    
+                }
+
+                if(i < downSamplerObj.PointsPerDecade)
+                {
+                    for(int j = 0; j < downSamplerObj.NumDecades; j++)
+                    {
+                        streamWriterObj.Write("{0:E10},", downSamplerObj.GetDownsampledDataSeries(j+1).TimeArr[i]);
+                        streamWriterObj.Write("{0:E10},", downSamplerObj.GetDownsampledDataSeries(j+1).Y_t[i]);
+                        streamWriterObj.Write("{0:E10},", downSamplerObj.GetDownsampledDataSeries(j+1).FrequencyArr[i]);
+                        streamWriterObj.Write("{0:E10},", downSamplerObj.GetDownsampledDataSeries(j + 1).YAbs_f[i]);
+                        streamWriterObj.Write("{0:E10},", downSamplerObj.GetDownsampledDataSeries(j + 1).YAbsAvg_f[i]);
+                    }
+                }
+
+                streamWriterObj.Write("\r\n");
+            }    
 
         }
-    } 
+    }
 }
