@@ -242,7 +242,7 @@ namespace Sparrow
             this.numDecadesNumeric.Size = new System.Drawing.Size(120, 20);
             this.numDecadesNumeric.TabIndex = 16;
             this.numDecadesNumeric.Value = new decimal(new int[] {
-            5,
+            2,
             0,
             0,
             0});

@@ -163,17 +163,30 @@ namespace Sparrow
         public void UpdateDownsampledData(ToolStripProgressBar pBar)
         {
             if (bFFTAveraging)
+            {
+                origionalDataSeries.UpdateFFT();
                 origionalDataSeries.UpdateFFTAverage();
+            }
 
             // because the data is coming in in 2^n multiple powers
             // and the downsampling factor must be a power of 2
             // the downsampled data sets can only add 1, 2, 4,.. 2^n points per  update
             // update the lowest downsampled data series
-            for (int i = 0; i < pointsPerUpdate; i++)
+            for (int i = 1; i <= pointsPerUpdate; i++)
             {
-                downsampledNodes[0].AddPoint(
+                if (i * mDownsamplingFactor > 2 * mDownsamplingFactor)
+                {
+                    downsampledNodes[0].AddPoint(
                     downsampledNodes[0].GetAverageFromDoubleArray(
-                    origionalDataSeries.Y_t, i * mDownsamplingFactor, mDownsamplingFactor), pBar);
+                    origionalDataSeries.Y_t, i * mDownsamplingFactor-1, mDownsamplingFactor), pBar);
+                }
+                else
+                {
+                    downsampledNodes[0].AddPoint(
+                    downsampledNodes[0].GetAverageFromDoubleArray(
+                    origionalDataSeries.Y_t, i * mDownsamplingFactor-1, mDownsamplingFactor), pBar);
+                }
+                
             }
 
         }

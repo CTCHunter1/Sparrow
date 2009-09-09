@@ -23,7 +23,7 @@ namespace Sparrow
         {
             InitializeComponent();
 
-            broadSpecUnitsComboBox.SelectedIndex = 2;
+            broadSpecUnitsComboBox.SelectedIndex = 1;
         }
 
         private void cancelButton_Click(object sender, EventArgs e)

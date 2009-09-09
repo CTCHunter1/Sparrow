@@ -41,7 +41,7 @@ namespace Sparrow
                 {
                     // average the last mDowsamplingFactor points and add them to the next node
                     mNextNode.AddPoint(GetAverageFromDoubleArray(base.y_t,
-                        ptIndex - mDownsamplingFactor + 1, mDownsamplingFactor), pBar);
+                        ptIndex, mDownsamplingFactor), pBar);
                 }
                 else
                 {
@@ -71,18 +71,21 @@ namespace Sparrow
         /// </summary>
         /// <param name="dblArray">The double array to get the 
         /// average from.</param>
-        /// <returns>The average of the double array</returns>
-        public double GetAverageFromDoubleArray(double[] dblArray, int startIndex, int len)
+        /// <returns>The average of the double array back from the index</returns>
+        public double GetAverageFromDoubleArray(double[] dblArray, int stopIndex, int len)
         {
             double dblResult = 0;
-            int endIndex = startIndex + len;
+            int startIndex = stopIndex - len +1;
 
-            for (int i = startIndex; i < endIndex; i++)
+            for (int i = startIndex; i <= stopIndex; i++)
             {
                 dblResult += dblArray[i];
             }
-
-            return dblResult / (len);
+            
+            //return (dblArray[startIndex]);
+            //return (dblArray[endIndex - 1]);
+              
+            return (dblResult / (double) len);
         }
     }
 }

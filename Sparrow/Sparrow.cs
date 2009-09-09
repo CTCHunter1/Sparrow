@@ -431,9 +431,9 @@ namespace Sparrow
             {
                 streamWriterObj.Write("Dec {0} Time (s),", i);            
                 streamWriterObj.Write("Dec {0} (V),", i);
-                streamWriterObj.Write("Channel {0} Freq (Hz),", i);
-                streamWriterObj.Write("Channel {0} (" + downSamplerObj.FrequencyUnits.ToString() + "),", i);
-                streamWriterObj.Write("Channel {0} Avg (" + downSamplerObj.FrequencyUnits.ToString() + "),", i);
+                streamWriterObj.Write("Dec {0} Freq (Hz),", i);
+                streamWriterObj.Write("Dec {0} (" + downSamplerObj.FrequencyUnits.ToString() + "),", i);
+                streamWriterObj.Write("Dec {0} Avg (" + downSamplerObj.FrequencyUnits.ToString() + "),", i);
 
             }
 
@@ -450,7 +450,7 @@ namespace Sparrow
                 }
                 else
                 {
-                    streamWriterObj.Write(",,");
+                    streamWriterObj.Write(",,,");
                 }
 
                 if (i < ch1VObj.NumPoints)

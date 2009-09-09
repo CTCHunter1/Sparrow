@@ -12,6 +12,7 @@ namespace Sparrow
     {
         // related to the data
         private double[] tArr;
+        private double T0;
         private double[] fArr;
         private double[] fHalfArr;
         protected double[] y_t;
@@ -224,6 +225,11 @@ namespace Sparrow
             // any math that needs to be done should just be done in this function
             yAbs_f = GetModulous(yReal_f, yImag_f);
             // TODO: Implement Phase retrevial
+
+            // Check Power Conservation
+            double PTime = GetPowerTimeDomain(y_t);
+            double PFreq = GetPowerFrequencyDomaindBmV(yAbs_f);
+
         }
 
         public virtual void AddPoint(double pt, ToolStripProgressBar bPar)
@@ -260,6 +266,9 @@ namespace Sparrow
             {
                 tArr[i] = tArr[i - 1] + tSample;
             }
+
+            // the duration
+            T0 = tSample*mNumPts;
         }
 
         private double[] GetModulous(double[] realArr, double[] imagArr)
@@ -280,13 +289,13 @@ namespace Sparrow
                 case AmpUnits.dBmV:
                     // overwrite the scale factor with the addition for dBmV
                     scale_factor = 20 * Math.Log10(scale_factor) + 60;
-
+    
                     for (int i = 0; i < realArr.Length; i++)
                     {
-                        modArr[i] = 10 * Math.Log10((realArr[i] * realArr[i] + imagArr[i] * imagArr[i])) + scale_factor;
+                        modArr[i] = 10 * Math.Log10((realArr[i] * realArr[i] + imagArr[i] * imagArr[i]) / (mNumPts*mNumPts));
                         // Check that the abs was not zero
-                        if (modArr[i] < -120)
-                            modArr[i] = -120;
+                        if (modArr[i] < -140)
+                            modArr[i] = -140;
 
                         /* Max Capture Code
                         if (graphNum == 1)
@@ -363,15 +372,60 @@ namespace Sparrow
 
         public void UpdateFFTAverage()
         {
+            
+            // for each new point requires the addition of a linear phase factor because of the
+            // shifting of the sample window
             // add the latest value of the fft to the accumulator, then average each point
+            double [] yNew = GetModulous(yReal_f, yImag_f);
+            
             for (int i = 0; i < yReal_f.Length; i++)
             {
-                yRealAvg_f[i] = (numFFTs * yRealAvg_f[i] + yReal_f[i]) / (double)(numFFTs + 1);
-                yImagAvg_f[i] = (numFFTs * yImagAvg_f[i] + yImag_f[i]) / (double)(numFFTs + 1);
+                double c = Math.Cos(2 * Math.PI * numFFTs * T0 * fArr[i]);
+                double d = Math.Sin(2 * Math.PI * numFFTs * T0 * fArr[i]);
+                yRealAvg_f[i] = (numFFTs * yRealAvg_f[i] + (yReal_f[i]*c-yImag_f[i]*d)) / (double)(numFFTs + 1);
+                yImagAvg_f[i] = (numFFTs * yImagAvg_f[i] + (yReal_f[i]*d+yImag_f[i]*c)) / (double)(numFFTs + 1);
+                //yRealAvg_f[i] =  ;
+                //yImagAvg_f[i] = (yReal_f[i] * d + yImag_f[i] * c) ;
+                switch (mAmpUnits)
+                {
+                    case AmpUnits.dBm:
+                    case AmpUnits.dBmV:
+                        yAbsAvg_f[i] = 20*Math.Log10((numFFTs * Math.Pow(10,yAbsAvg_f[i]/20) + Math.Pow(10,yNew[i]/20)) / (double)(numFFTs + 1));
+                        break;
+
+                    case AmpUnits.V:
+                        yAbsAvg_f[i] = (numFFTs * yAbsAvg_f[i] + yNew[i]) / (double)(numFFTs + 1);                        
+                        break;
+                } 
             }
+            
             numFFTs++;
 
-            yAbsAvg_f = GetModulous(yRealAvg_f, yImagAvg_f);
+           ///yAbsAvg_f = GetModulous(yRealAvg_f, yImagAvg_f);
+        }
+        
+        double GetPowerTimeDomain(double [] x_t)
+        {
+            double accum = 0;
+
+            for(int i=0; i < mNumPts; i++)
+            {
+                accum += x_t[i] * x_t[i];
+            }
+
+            return (accum / mNumPts);
+        }
+
+        double GetPowerFrequencyDomaindBmV(double[] ydBmV_f)
+        {
+            double accum = 0;
+
+            for (int i = 0; i < mNumPts; i++)
+            {
+                accum += Math.Pow(10, ydBmV_f[i] / 10);
+            }
+
+            return (accum);
         }
     }
 }
