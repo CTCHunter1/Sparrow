@@ -9,13 +9,18 @@ namespace Sparrow
     {
         private DataSeriesNode mNextNode;
         private int mDownsamplingFactor = 0;
+        SOSFilter sosFilterObj;
+        private double[] mFilteredArr;
+        
 
         public DataSeriesNode(int numPts, double sampleRate, AmpUnits fourierAmpUnits, double resistance, bool updateFFT,
-            int downsamplingFactor, DataSeriesNode nextNode)
+            int downsamplingFactor, SOSFilter filterObj, DataSeriesNode nextNode)
             : base(numPts, sampleRate, fourierAmpUnits, resistance)
         {
             mNextNode = nextNode;
             mDownsamplingFactor = downsamplingFactor;
+            sosFilterObj = filterObj;
+            mFilteredArr = new double[numPts];
         }
 
         public DataSeriesNode NextNode
@@ -32,22 +37,29 @@ namespace Sparrow
 
         public override void AddPoint(double pt, ToolStripProgressBar pBar)
         {
+            pt = pt * Math.Sqrt(mDownsamplingFactor);
             // add the point to the array
             base.y_t[ptIndex] = pt;
+            mFilteredArr[ptIndex] = sosFilterObj.AddPoint(pt);
 
             if ((base.ptIndex % mDownsamplingFactor) == (mDownsamplingFactor - 1))
             {
                 if (mNextNode != null)
                 {
+                    mNextNode.AddPoint(mFilteredArr[ptIndex], pBar);
                     // average the last mDowsamplingFactor points and add them to the next node
-                    mNextNode.AddPoint(GetAverageFromDoubleArray(base.y_t,
-                        ptIndex, mDownsamplingFactor), pBar);
+                    //mNextNode.AddPoint(GetAverageFromDoubleArray(base.y_t,
+                    //    ptIndex, mDownsamplingFactor), pBar);
                 }
                 else
                 {
-                    // stop when 100% reached
-                    if (pBar.Value < base.mNumPts)
-                        pBar.Value = base.ptIndex+1;                
+                    try
+                    {
+                        // stop when 100% reached
+                        if (pBar.Value < base.mNumPts)
+                            pBar.Value = base.ptIndex + 1;
+                    }
+                    catch (NullReferenceException) { };
                 }
             }
 

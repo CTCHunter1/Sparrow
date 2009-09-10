@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Windows.Forms;
 using System.Text;
@@ -17,6 +18,7 @@ namespace Sparrow
         private DataSeriesNode[] downsampledNodes;
         AmpUnits ampUnits;
         double mResistance;
+        SOSFilter sosFilterObj;
 
         double[] mFLogArr;      // the frequency scale for the downsampled data
         double[] y_logf = null;            // the data points on a log(f) scale
@@ -35,6 +37,7 @@ namespace Sparrow
             mPointsPerDecade = pointsPerDecade;
             ampUnits = fourierAmpUnits;
             mResistance = resistance;
+            sosFilterObj = new SOSFilter(new StreamReader("Filter.csv"));
             InitDownsampledDataSeriesNodes();
         }
 
@@ -49,11 +52,11 @@ namespace Sparrow
                 // the last decade has no next node pointer
                 if (i == (mNumDecades - 1))
                     downsampledNodes[i] = new DataSeriesNode(mPointsPerDecade, origionalDataSeries.SampleRate / (Math.Pow((double)mDownsamplingFactor, (double)(i + 1))),
-                        ampUnits, mResistance, false, mDownsamplingFactor, null);
+                        ampUnits, mResistance, false, mDownsamplingFactor, new SOSFilter(new StreamReader("Filter.csv")), null);
 
                 else
                     downsampledNodes[i] = new DataSeriesNode(mPointsPerDecade, origionalDataSeries.SampleRate / (Math.Pow((double)mDownsamplingFactor, (double)(i + 1))),
-                        ampUnits, mResistance, false, mDownsamplingFactor, downsampledNodes[i + 1]);
+                        ampUnits, mResistance, false, mDownsamplingFactor, new SOSFilter(new StreamReader("Filter.csv")), downsampledNodes[i + 1]);
 
             }
 
@@ -168,26 +171,27 @@ namespace Sparrow
                 origionalDataSeries.UpdateFFTAverage();
             }
 
+            for (int i = 0; i < origionalDataSeries.NumPoints; i++)
+            {
+                double pt = sosFilterObj.AddPoint(origionalDataSeries.Y_t[i]); // put the point in the filter
+
+                if ((i % mDownsamplingFactor) == (mDownsamplingFactor - 1))
+                    downsampledNodes[0].AddPoint(pt * Math.Sqrt((double)downsampledNodes[0].NumPoints / (double)origionalDataSeries.NumPoints), pBar);               
+            }
+
+            /*
             // because the data is coming in in 2^n multiple powers
             // and the downsampling factor must be a power of 2
             // the downsampled data sets can only add 1, 2, 4,.. 2^n points per  update
             // update the lowest downsampled data series
             for (int i = 1; i <= pointsPerUpdate; i++)
             {
-                if (i * mDownsamplingFactor > 2 * mDownsamplingFactor)
                 {
                     downsampledNodes[0].AddPoint(
                     downsampledNodes[0].GetAverageFromDoubleArray(
-                    origionalDataSeries.Y_t, i * mDownsamplingFactor-1, mDownsamplingFactor), pBar);
+                    origionalDataSeries.Y_t, i * mDownsamplingFactor - 1, mDownsamplingFactor), pBar);
                 }
-                else
-                {
-                    downsampledNodes[0].AddPoint(
-                    downsampledNodes[0].GetAverageFromDoubleArray(
-                    origionalDataSeries.Y_t, i * mDownsamplingFactor-1, mDownsamplingFactor), pBar);
-                }
-                
-            }
+            }*/
 
         }
 
