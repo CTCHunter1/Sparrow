@@ -217,7 +217,7 @@ namespace Sparrow
             catch (NullReferenceException)
             {
 
-            } 
+            }
         }
 
         private void StopAquire()
@@ -381,6 +381,9 @@ namespace Sparrow
             {
                 try
                 {
+                    // .NET Framwork issue *** The base path for the application changes
+                    // to be where ever the SaveFileDialog points to
+                    // .NET can not handle multiple network file access
                     // Open the file
                     streamWriterObj = new StreamWriter(saveFileDialogObj.OpenFile());
 

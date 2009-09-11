@@ -37,7 +37,7 @@ namespace Sparrow
 
         public override void AddPoint(double pt, ToolStripProgressBar pBar)
         {
-            pt = pt * Math.Sqrt(mDownsamplingFactor);
+            //pt = pt * Math.Sqrt(mDownsamplingFactor);
             // add the point to the array
             base.y_t[ptIndex] = pt;
             mFilteredArr[ptIndex] = sosFilterObj.AddPoint(pt);

@@ -16,3 +16,4 @@ u:\Repository\Software\C Sharp\Programs\Sparrow\Sparrow\bin\Release\NationalInst
 u:\Repository\Software\C Sharp\Programs\Sparrow\Sparrow\bin\Release\Interop.Microsoft.Office.Core.dll
 u:\Repository\Software\C Sharp\Programs\Sparrow\Sparrow\obj\Release\Sparrow.exe
 u:\Repository\Software\C Sharp\Programs\Sparrow\Sparrow\obj\Release\Sparrow.pdb
+u:\Repository\Software\C Sharp\Programs\Sparrow\Sparrow\bin\Debug\MathNet.Iridium.xml

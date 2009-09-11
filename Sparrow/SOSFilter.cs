@@ -36,7 +36,8 @@ namespace Sparrow
                     Convert.ToDouble(values[6])));                
             }
 
-            srObj.Close();
+            srObj.BaseStream.Flush();
+            srObj.Close();            
 
             sosArr = sosList.ToArray();
         }

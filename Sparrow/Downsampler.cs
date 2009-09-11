@@ -37,7 +37,8 @@ namespace Sparrow
             mPointsPerDecade = pointsPerDecade;
             ampUnits = fourierAmpUnits;
             mResistance = resistance;
-            sosFilterObj = new SOSFilter(new StreamReader("Filter.csv"));
+
+            sosFilterObj = new SOSFilter(new StreamReader(AppDomain.CurrentDomain.BaseDirectory + "Filter.csv"));
             InitDownsampledDataSeriesNodes();
         }
 
@@ -52,11 +53,11 @@ namespace Sparrow
                 // the last decade has no next node pointer
                 if (i == (mNumDecades - 1))
                     downsampledNodes[i] = new DataSeriesNode(mPointsPerDecade, origionalDataSeries.SampleRate / (Math.Pow((double)mDownsamplingFactor, (double)(i + 1))),
-                        ampUnits, mResistance, false, mDownsamplingFactor, new SOSFilter(new StreamReader("Filter.csv")), null);
+                        ampUnits, mResistance, false, mDownsamplingFactor, new SOSFilter(new StreamReader(AppDomain.CurrentDomain.BaseDirectory + "Filter.csv")), null);
 
                 else
                     downsampledNodes[i] = new DataSeriesNode(mPointsPerDecade, origionalDataSeries.SampleRate / (Math.Pow((double)mDownsamplingFactor, (double)(i + 1))),
-                        ampUnits, mResistance, false, mDownsamplingFactor, new SOSFilter(new StreamReader("Filter.csv")), downsampledNodes[i + 1]);
+                        ampUnits, mResistance, false, mDownsamplingFactor, new SOSFilter(new StreamReader(AppDomain.CurrentDomain.BaseDirectory + "Filter.csv")), downsampledNodes[i + 1]);
 
             }
 
@@ -173,10 +174,10 @@ namespace Sparrow
 
             for (int i = 0; i < origionalDataSeries.NumPoints; i++)
             {
-                double pt = sosFilterObj.AddPoint(origionalDataSeries.Y_t[i]); // put the point in the filter
+                double pt = sosFilterObj.AddPoint(origionalDataSeries.Y_t[i]);
 
                 if ((i % mDownsamplingFactor) == (mDownsamplingFactor - 1))
-                    downsampledNodes[0].AddPoint(pt * Math.Sqrt((double)downsampledNodes[0].NumPoints / (double)origionalDataSeries.NumPoints), pBar);               
+                    downsampledNodes[0].AddPoint(pt, pBar);               
             }
 
             /*

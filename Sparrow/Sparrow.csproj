@@ -28,10 +28,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="MathNet.Iridium, Version=2008.8.16.470, Culture=neutral, PublicKeyToken=c061a3ec32cc0c6f, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\Documents and Settings\futia\Desktop\MathNet.Iridium\MathNet.Iridium-2008.8.16.470\Binaries\Release\MathNet.Iridium.dll</HintPath>
-    </Reference>
+    <Reference Include="MathNet.Iridium, Version=2008.8.16.470, Culture=neutral, PublicKeyToken=c061a3ec32cc0c6f, processorArchitecture=MSIL" />
     <Reference Include="NationalInstruments.Common, Version=8.7.20.131, Culture=neutral, PublicKeyToken=4544464cdeaab541, processorArchitecture=MSIL" />
     <Reference Include="NationalInstruments.DAQmx, Version=8.9.20.210, Culture=neutral, PublicKeyToken=4544464cdeaab541, processorArchitecture=x86" />
     <Reference Include="System" />

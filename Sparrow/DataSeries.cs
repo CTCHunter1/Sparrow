@@ -292,7 +292,8 @@ namespace Sparrow
     
                     for (int i = 0; i < realArr.Length; i++)
                     {
-                        modArr[i] = 10 * Math.Log10((realArr[i] * realArr[i] + imagArr[i] * imagArr[i]) / (mNumPts*mNumPts));
+                        modArr[i] = 10 * Math.Log10((realArr[i] * realArr[i] + imagArr[i] * imagArr[i])/(fSample*fSample*T0)) + 60; // +scale_factor      
+                        //modArr[i] = (realArr[i] * realArr[i] + imagArr[i] * imagArr[i])/(fSample*fSample*T0*T0);
                         // Check that the abs was not zero
                         if (modArr[i] < -140)
                             modArr[i] = -140;
@@ -422,7 +423,7 @@ namespace Sparrow
 
             for (int i = 0; i < mNumPts; i++)
             {
-                accum += Math.Pow(10, ydBmV_f[i] / 10);
+                accum += Math.Pow(10, (ydBmV_f[i]-60) / 10);
             }
 
             return (accum);
