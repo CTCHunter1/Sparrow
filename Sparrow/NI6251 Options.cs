@@ -19,6 +19,8 @@ namespace Sparrow
         private decimal backupSamplesChannel;
         private decimal backupRate;
 
+        private bool bSingleShot = false;
+
         private Task taskObj = null;
 
         public NI6251_Options()
@@ -49,9 +51,20 @@ namespace Sparrow
                 // setup the channel
                 taskObj.AIChannels.CreateVoltageChannel(physicalChannelComboBox.Text, "", AITerminalConfiguration.Differential,
                         Convert.ToDouble(minimumValueNumeric.Value), Convert.ToDouble(maximumValueNumeric.Value), AIVoltageUnits.Volts);
-                // setup the timing, last value is the number of samples to use in the buffer
-                taskObj.Timing.ConfigureSampleClock("", Convert.ToDouble(rateNumeric.Value),
-                    SampleClockActiveEdge.Rising, SampleQuantityMode.ContinuousSamples, 2 * Convert.ToInt32(samplesPerChannelNumeric.Value));
+
+                if (bSingleShot == true)
+                {
+                    // setup the timing, last value is the number of samples to use in the buffer
+                    taskObj.Timing.ConfigureSampleClock("", Convert.ToDouble(rateNumeric.Value),
+                        SampleClockActiveEdge.Rising, SampleQuantityMode.FiniteSamples, 2 * Convert.ToInt32(Math.Pow(2, Convert.ToDouble(samplesPerChannelNumeric.Value))));
+                }
+                else
+                {
+                    // setup the timing, last value is the number of samples to use in the buffer
+                    taskObj.Timing.ConfigureSampleClock("", Convert.ToDouble(rateNumeric.Value),
+                        SampleClockActiveEdge.Rising, SampleQuantityMode.ContinuousSamples, 2 * Convert.ToInt32(Math.Pow(2, Convert.ToDouble(samplesPerChannelNumeric.Value))));
+
+                }
 
                 taskObj.Control(TaskAction.Verify);
             }
@@ -73,6 +86,8 @@ namespace Sparrow
             backupMaxValue = maximumValueNumeric.Value;
             backupSamplesChannel = samplesPerChannelNumeric.Value;
             backupRate = rateNumeric.Value;
+
+            samplesPerChannelLabel.Text = Math.Pow(2.0, Convert.ToDouble(samplesPerChannelNumeric.Value)).ToString("0");           
 
         }
 
@@ -103,7 +118,7 @@ namespace Sparrow
         {
             get
             {
-                return (Convert.ToInt32(samplesPerChannelNumeric.Value));
+                return  Convert.ToInt32(Math.Pow(2,(Convert.ToDouble(samplesPerChannelNumeric.Value))));
             }
         }
 
@@ -113,6 +128,25 @@ namespace Sparrow
             {
                 return (Convert.ToInt32(rateNumeric.Value));
             }
+        }
+
+        public bool SingleShot
+        {
+            set
+            {
+                bSingleShot = value;
+                SetupDevice();
+            }
+            get
+            {
+                return (bSingleShot);
+            }
+        }
+
+        private void samplesPerChannelNumeric_ValueChanged(object sender, EventArgs e)
+        {
+            samplesPerChannelLabel.Text = Math.Pow(2.0, Convert.ToDouble(samplesPerChannelNumeric.Value)).ToString("0");            
+
         }
     }
 }

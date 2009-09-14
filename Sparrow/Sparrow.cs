@@ -34,13 +34,18 @@ namespace Sparrow
         private AnalogWaveform<double> ch1WaveformFast;
 
         DataSeries ch1VObj;
-        DownSampler downSamplerObj; 
+        DataSeries singleShotVObj = null;
+        DownSampler downSamplerObj;
 
+        private bool bSingleShot = false;
         private bool aquireData = false;
+
+        private int singleShotCalls = 0;
 
         // update timer
         Timer timerObj;
         bool bDisplayUpdate = false;
+        
 
         private double [] maxBroadArr = new double[3]{-1E8, -1E8, -1E8};
 
@@ -79,11 +84,10 @@ namespace Sparrow
         private void AnalogInCallback(IAsyncResult ar)
         {
             try
-            {
-                // Get the waveform object
+            {      
                 ch1WaveformFast = analogInReader.EndReadWaveform(ar);
                 ch1VObj.Y_t = ch1WaveformFast.GetScaledData();      // get array of doubles the values in Volts
-
+                
                 downSamplerObj.UpdateDownsampledData(toolStripProgressBar);
 
                 // Only Update the graphs when the display update bool is true
@@ -112,32 +116,38 @@ namespace Sparrow
                         timeGraph2.Plot("axis1", downSamplerObj.GetDownsampledDataSeries(sparrowOptionsObj.TimeDecGraph2).TimeArr,
                             downSamplerObj.GetDownsampledDataSeries(sparrowOptionsObj.TimeDecGraph2).Y_t, Color.Blue);
                     }
-              
+
                     freqGraph1.Semilogx("axis1", downSamplerObj.DownsampledLogFrequency, downSamplerObj.Y_fLog, Color.Red);
                     freqGraph1.Semilogx("axis2", downSamplerObj.DownsampledLogFrequency, downSamplerObj.YAvg_fLog, Color.Blue);
                     bDisplayUpdate = false;
                 }
 
                 // keep the aquisition running
-                if (aquireData == true)
+                if (aquireData == true )
+                {
                     iAsyncResultObj = analogInReader.BeginReadWaveform(ch1VObj.NumPoints, AnalogInCallback, ni6251OptionsObj.TaskObj);
-          
+                }
             }
 
             catch (DaqException ex)
             {
-                StopAquire();
-                
-
                 switch (ex.Error)
                 {
                     case -200279:
                         //underread error, restart
+                        StopAquire();
                         StartAquire();
                         break;
 
+                        /*
+                    case -200284:
+                        iAsyncResultObj = analogInReader.BeginReadWaveform(ch1VObj.NumPoints, AnalogInCallback, ni6251OptionsObj.TaskObj);
+                        break;
+                        */
+
                     default:
                         MessageBox.Show(ex.Message);
+                        StopAquire();
                         StartAquire();
                         break;
                 }                
@@ -160,7 +170,9 @@ namespace Sparrow
                 StopAquire();
                 // We dont' care what changed
                 ni6251OptionsObj.ShowDialog();
+                ni6251OptionsObj.SingleShot = false;
 
+                if(ni6251OptionsObj.Rate >1000)
                 StartAquire();     // restart the data acquistion
             }catch (DaqException ex)
             {
@@ -179,7 +191,7 @@ namespace Sparrow
         private void StartAquire()
         {
             try
-            {
+            {                
                 // stop any already running aquisitions
                 ni6251OptionsObj.TaskObj.Control(TaskAction.Stop);
 
@@ -204,15 +216,26 @@ namespace Sparrow
                 analogInReader = new AnalogSingleChannelReader(ni6251OptionsObj.TaskObj.Stream);
                 analogCallback = new AsyncCallback(AnalogInCallback);
 
-                analogInReader.SynchronizeCallbacks = true;
-                iAsyncResultObj = analogInReader.BeginReadWaveform(ni6251OptionsObj.SamplesPerChannel, analogCallback, ni6251OptionsObj.TaskObj);
+                //analogInReader.SynchronizeCallbacks = true;
 
-                timerObj.Start();
 
                 aquireData = true;
-                statusStrip.Items[1].Text = "Aquiring";
-                stopToolStripMenuItem.Enabled = true;
-                startToolStripMenuItem.Enabled = false;
+
+                if (bSingleShot)
+                {
+                    iAsyncResultObj = analogInReader.BeginReadWaveform(ni6251OptionsObj.SamplesPerChannel, SingleShotCallback, ni6251OptionsObj.TaskObj);
+                    ni6251OptionsObj.TaskObj.Stream.Timeout = -1;
+                }
+                else
+                {
+                    iAsyncResultObj = analogInReader.BeginReadWaveform(ni6251OptionsObj.SamplesPerChannel, analogCallback, ni6251OptionsObj.TaskObj);
+                    
+                    timerObj.Start();
+
+                    statusStrip.Items[1].Text = "Aquiring";
+                    stopToolStripMenuItem.Enabled = true;
+                    startToolStripMenuItem.Enabled = false;
+                }
             }
             catch (NullReferenceException)
             {
@@ -222,6 +245,7 @@ namespace Sparrow
 
         private void StopAquire()
         {
+            timerObj.Stop();
             toolStripProgressBar.Value = 0;
 
             if (aquireData == true)
@@ -229,9 +253,11 @@ namespace Sparrow
                 aquireData = false;
                 // spin for operation to complete
                 iAsyncResultObj.AsyncWaitHandle.WaitOne();
+                ni6251OptionsObj.TaskObj.Stop();
                 statusStrip.Items[1].Text = "Stoped";
                 stopToolStripMenuItem.Enabled = false;
                 startToolStripMenuItem.Enabled = true;
+                
             } 
         }
 
@@ -480,6 +506,137 @@ namespace Sparrow
                 streamWriterObj.Write("\r\n");
             }    
 
+        }
+
+        private void singleShotToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // turn on single shot
+            StopAquire();
+            bSingleShot = true;
+            ni6251OptionsObj.SingleShot = true;
+
+            saveSingleShotToolStripMenuItem.Enabled = true;
+
+            singleShotVObj = new DataSeries(ni6251OptionsObj.SamplesPerChannel * sparrowOptionsObj.SingleShotNumPoints,
+                ni6251OptionsObj.Rate, AmpUnits.dBmV, sparrowOptionsObj.Resistance);
+
+            StartAquire();
+        
+        }
+
+        private void SingleShotCallback(IAsyncResult ar)
+        {   
+            try
+            {
+                ni6251OptionsObj.TaskObj.WaitUntilDone();
+
+                ch1WaveformFast = analogInReader.EndReadWaveform(ar);
+                ch1VObj.Y_t = ch1WaveformFast.GetScaledData();      // get array of doubles the values in Volts
+
+         
+                // copy Y_t into the sigle shot array
+                for (int i = 0; i < ch1VObj.NumPoints; i++)
+                {
+                    singleShotVObj.AddPoint(ch1VObj.Y_t[i], toolStripProgressBar);
+                }
+
+                singleShotVObj.UpdateFFT();
+
+                ch1VObj.UpdateFFT();
+                // create slower waveform by averaging each half of the sampled signal
+                timeGraph1.Plot("axis1", singleShotVObj.TimeArr, singleShotVObj.Y_t, Color.Blue);
+                timeGraph2.Plot("axis1", singleShotVObj.FrequencyArr, singleShotVObj.YAbs_f, Color.Blue);
+                
+
+                singleShotCalls++;
+
+                if(singleShotCalls < sparrowOptionsObj.SingleShotNumPoints)
+                     iAsyncResultObj = analogInReader.BeginReadWaveform(ni6251OptionsObj.SamplesPerChannel, SingleShotCallback, ni6251OptionsObj.TaskObj);
+                else
+                {
+                    bSingleShot = false;
+                    singleShotCalls = 0;
+                }
+                                
+                
+            }
+            catch (DaqException ex)
+            {
+                StopAquire();
+
+
+                switch (ex.Error)
+                {
+                    case -200279:
+                        //underread error, restart
+                        StartAquire();
+                        break;
+
+                    default:
+                        MessageBox.Show(ex.Message);
+                        StartAquire();
+                        break;
+                }
+            }
+
+            bSingleShot = false;
+        }
+
+        private void saveSingleShotToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            StreamWriter streamWriterObj;
+
+            if (saveFileDialogObj == null)
+            {
+                saveFileDialogObj = new SaveFileDialog();
+            }
+
+            if (saveFileDialogObj.ShowDialog() == DialogResult.OK)
+            {
+                try
+                {
+                    // .NET Framwork issue *** The base path for the application changes
+                    // to be where ever the SaveFileDialog points to
+                    // .NET can not handle multiple network file access
+                    // Open the file
+                    streamWriterObj = new StreamWriter(saveFileDialogObj.OpenFile());
+
+                    WriteSingleShotFile(streamWriterObj);
+
+                    streamWriterObj.Close();
+                }
+                catch (IOException Ex)
+                {
+                    MessageBox.Show(Ex.Message);
+                }
+            }
+        }
+
+        private void WriteSingleShotFile(StreamWriter streamWriterObj)
+        {
+            streamWriterObj.NewLine = "\r\n";
+            streamWriterObj.WriteLine("Timestamp:," + DateTime.Now);
+            streamWriterObj.WriteLine("Title:," + "Sparrow Data File,");
+            streamWriterObj.WriteLine("Sample Rate:,{0:E}.", singleShotVObj.SampleRate);
+            streamWriterObj.WriteLine("Number of Points:,{0}.", singleShotVObj.NumPoints);
+
+
+            // Write Header
+            streamWriterObj.Write("Channel 1 Time (s),");
+            streamWriterObj.Write("Channel 1 (V),");
+            streamWriterObj.Write("Channel 1 Freq (Hz),");
+            streamWriterObj.Write("Channel 1 (" + ch1VObj.FrequncyUnits.ToString() + "),");
+            streamWriterObj.Write("Channel 1 Avg(" + ch1VObj.FrequncyUnits.ToString() + "),\r\n");
+
+            // Write Data
+            for (int i = 0; i < singleShotVObj.NumPoints; i++)
+            {
+                streamWriterObj.Write("{0:E10},", singleShotVObj.TimeArr[i]);
+                streamWriterObj.Write("{0:E10},", singleShotVObj.Y_t[i]);
+                streamWriterObj.Write("{0:E10},", singleShotVObj.FrequencyArr[i]);
+                streamWriterObj.Write("{0:E10},", singleShotVObj.YAbs_f[i]);
+                streamWriterObj.Write("{0:E10},\r\n", singleShotVObj.YAbsAvg_f[i]);
+            }          
         }
     }
 }

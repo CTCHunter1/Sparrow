@@ -42,6 +42,8 @@ namespace Sparrow
             this.samplesLabel = new System.Windows.Forms.Label();
             this.rateLabel = new System.Windows.Forms.Label();
             this.samplesPerChannelNumeric = new System.Windows.Forms.NumericUpDown();
+            this.label1 = new System.Windows.Forms.Label();
+            this.samplesPerChannelLabel = new System.Windows.Forms.Label();
             this.channelParametersGroupBox.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.minimumValueNumeric)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.maximumValueNumeric)).BeginInit();
@@ -171,6 +173,8 @@ namespace Sparrow
             // 
             // timingParametersGroupBox
             // 
+            this.timingParametersGroupBox.Controls.Add(this.samplesPerChannelLabel);
+            this.timingParametersGroupBox.Controls.Add(this.label1);
             this.timingParametersGroupBox.Controls.Add(this.rateNumeric);
             this.timingParametersGroupBox.Controls.Add(this.samplesLabel);
             this.timingParametersGroupBox.Controls.Add(this.rateLabel);
@@ -178,7 +182,7 @@ namespace Sparrow
             this.timingParametersGroupBox.FlatStyle = System.Windows.Forms.FlatStyle.System;
             this.timingParametersGroupBox.Location = new System.Drawing.Point(15, 138);
             this.timingParametersGroupBox.Name = "timingParametersGroupBox";
-            this.timingParametersGroupBox.Size = new System.Drawing.Size(224, 92);
+            this.timingParametersGroupBox.Size = new System.Drawing.Size(269, 92);
             this.timingParametersGroupBox.TabIndex = 4;
             this.timingParametersGroupBox.TabStop = false;
             this.timingParametersGroupBox.Text = "Timing Parameters";
@@ -221,20 +225,39 @@ namespace Sparrow
             // 
             // samplesPerChannelNumeric
             // 
-            this.samplesPerChannelNumeric.Location = new System.Drawing.Point(120, 24);
+            this.samplesPerChannelNumeric.Location = new System.Drawing.Point(164, 24);
             this.samplesPerChannelNumeric.Maximum = new decimal(new int[] {
-            100000,
+            32,
             0,
             0,
             0});
             this.samplesPerChannelNumeric.Name = "samplesPerChannelNumeric";
-            this.samplesPerChannelNumeric.Size = new System.Drawing.Size(96, 20);
+            this.samplesPerChannelNumeric.Size = new System.Drawing.Size(51, 20);
             this.samplesPerChannelNumeric.TabIndex = 1;
             this.samplesPerChannelNumeric.Value = new decimal(new int[] {
-            1024,
+            10,
             0,
             0,
             0});
+            this.samplesPerChannelNumeric.ValueChanged += new System.EventHandler(this.samplesPerChannelNumeric_ValueChanged);
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(161, 8);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(37, 13);
+            this.label1.TabIndex = 4;
+            this.label1.Text = "Pow 2";
+            // 
+            // samplesPerChannelLabel
+            // 
+            this.samplesPerChannelLabel.AutoSize = true;
+            this.samplesPerChannelLabel.Location = new System.Drawing.Point(117, 29);
+            this.samplesPerChannelLabel.Name = "samplesPerChannelLabel";
+            this.samplesPerChannelLabel.Size = new System.Drawing.Size(31, 13);
+            this.samplesPerChannelLabel.TabIndex = 5;
+            this.samplesPerChannelLabel.Text = "1024";
             // 
             // NI6251_Options
             // 
@@ -242,7 +265,7 @@ namespace Sparrow
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.cancel_button;
-            this.ClientSize = new System.Drawing.Size(258, 294);
+            this.ClientSize = new System.Drawing.Size(296, 294);
             this.Controls.Add(this.timingParametersGroupBox);
             this.Controls.Add(this.channelParametersGroupBox);
             this.Controls.Add(this.cancel_button);
@@ -255,6 +278,7 @@ namespace Sparrow
             ((System.ComponentModel.ISupportInitialize)(this.minimumValueNumeric)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.maximumValueNumeric)).EndInit();
             this.timingParametersGroupBox.ResumeLayout(false);
+            this.timingParametersGroupBox.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.rateNumeric)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.samplesPerChannelNumeric)).EndInit();
             this.ResumeLayout(false);
@@ -277,5 +301,7 @@ namespace Sparrow
         private System.Windows.Forms.Label samplesLabel;
         private System.Windows.Forms.Label rateLabel;
         private System.Windows.Forms.NumericUpDown samplesPerChannelNumeric;
+        private System.Windows.Forms.Label samplesPerChannelLabel;
+        private System.Windows.Forms.Label label1;
     }
 }

@@ -50,18 +50,27 @@ namespace Sparrow
             this.timeDec2Numeric = new System.Windows.Forms.NumericUpDown();
             this.label10 = new System.Windows.Forms.Label();
             this.fftAveragingCheckBox = new System.Windows.Forms.CheckBox();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.label11 = new System.Windows.Forms.Label();
+            this.singleShotNumberPointsPow2Numeric = new System.Windows.Forms.NumericUpDown();
+            this.singleShotNumPointsLabel = new System.Windows.Forms.Label();
+            this.label13 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.numDownsampledPtsPow2Numeric)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.resistanceNumeric)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.downsampleFactorPow2Numeric)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numDecadesNumeric)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.timeDec1Numeric)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.timeDec2Numeric)).BeginInit();
+            this.groupBox1.SuspendLayout();
+            this.groupBox2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.singleShotNumberPointsPow2Numeric)).BeginInit();
             this.SuspendLayout();
             // 
             // okButton
             // 
             this.okButton.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.okButton.Location = new System.Drawing.Point(12, 404);
+            this.okButton.Location = new System.Drawing.Point(15, 563);
             this.okButton.Name = "okButton";
             this.okButton.Size = new System.Drawing.Size(75, 23);
             this.okButton.TabIndex = 0;
@@ -71,7 +80,7 @@ namespace Sparrow
             // cancelButton
             // 
             this.cancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.cancelButton.Location = new System.Drawing.Point(155, 404);
+            this.cancelButton.Location = new System.Drawing.Point(158, 563);
             this.cancelButton.Name = "cancelButton";
             this.cancelButton.Size = new System.Drawing.Size(78, 23);
             this.cancelButton.TabIndex = 1;
@@ -86,14 +95,14 @@ namespace Sparrow
             "V",
             "dBmV",
             "dBm"});
-            this.broadSpecUnitsComboBox.Location = new System.Drawing.Point(12, 42);
+            this.broadSpecUnitsComboBox.Location = new System.Drawing.Point(27, 36);
             this.broadSpecUnitsComboBox.Name = "broadSpecUnitsComboBox";
             this.broadSpecUnitsComboBox.Size = new System.Drawing.Size(121, 21);
             this.broadSpecUnitsComboBox.TabIndex = 2;
             // 
             // numDownsampledPtsPow2Numeric
             // 
-            this.numDownsampledPtsPow2Numeric.Location = new System.Drawing.Point(48, 230);
+            this.numDownsampledPtsPow2Numeric.Location = new System.Drawing.Point(9, 171);
             this.numDownsampledPtsPow2Numeric.Maximum = new decimal(new int[] {
             32,
             0,
@@ -112,7 +121,7 @@ namespace Sparrow
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(12, 26);
+            this.label1.Location = new System.Drawing.Point(27, 20);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(104, 13);
             this.label1.TabIndex = 5;
@@ -121,7 +130,7 @@ namespace Sparrow
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(9, 75);
+            this.label2.Location = new System.Drawing.Point(9, 16);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(112, 13);
             this.label2.TabIndex = 6;
@@ -130,7 +139,7 @@ namespace Sparrow
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(152, 200);
+            this.label3.Location = new System.Drawing.Point(156, 141);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(106, 13);
             this.label3.TabIndex = 7;
@@ -138,7 +147,7 @@ namespace Sparrow
             // 
             // resistanceNumeric
             // 
-            this.resistanceNumeric.Location = new System.Drawing.Point(12, 181);
+            this.resistanceNumeric.Location = new System.Drawing.Point(9, 122);
             this.resistanceNumeric.Maximum = new decimal(new int[] {
             1000000,
             0,
@@ -156,7 +165,7 @@ namespace Sparrow
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(13, 165);
+            this.label4.Location = new System.Drawing.Point(9, 106);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(96, 13);
             this.label4.TabIndex = 9;
@@ -165,7 +174,7 @@ namespace Sparrow
             // numDownsapledPointsLabel
             // 
             this.numDownsapledPointsLabel.AutoSize = true;
-            this.numDownsapledPointsLabel.Location = new System.Drawing.Point(162, 232);
+            this.numDownsapledPointsLabel.Location = new System.Drawing.Point(156, 173);
             this.numDownsapledPointsLabel.Name = "numDownsapledPointsLabel";
             this.numDownsapledPointsLabel.Size = new System.Drawing.Size(19, 13);
             this.numDownsapledPointsLabel.TabIndex = 10;
@@ -174,7 +183,7 @@ namespace Sparrow
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(9, 214);
+            this.label6.Location = new System.Drawing.Point(9, 155);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(139, 13);
             this.label6.TabIndex = 11;
@@ -183,7 +192,7 @@ namespace Sparrow
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(12, 266);
+            this.label7.Location = new System.Drawing.Point(9, 207);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(134, 13);
             this.label7.TabIndex = 15;
@@ -192,7 +201,7 @@ namespace Sparrow
             // downsampleFactorLabel
             // 
             this.downsampleFactorLabel.AutoSize = true;
-            this.downsampleFactorLabel.Location = new System.Drawing.Point(162, 286);
+            this.downsampleFactorLabel.Location = new System.Drawing.Point(156, 227);
             this.downsampleFactorLabel.Name = "downsampleFactorLabel";
             this.downsampleFactorLabel.Size = new System.Drawing.Size(19, 13);
             this.downsampleFactorLabel.TabIndex = 14;
@@ -201,7 +210,7 @@ namespace Sparrow
             // label9
             // 
             this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(152, 266);
+            this.label9.Location = new System.Drawing.Point(156, 207);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(101, 13);
             this.label9.TabIndex = 13;
@@ -209,7 +218,7 @@ namespace Sparrow
             // 
             // downsampleFactorPow2Numeric
             // 
-            this.downsampleFactorPow2Numeric.Location = new System.Drawing.Point(48, 284);
+            this.downsampleFactorPow2Numeric.Location = new System.Drawing.Point(9, 225);
             this.downsampleFactorPow2Numeric.Maximum = new decimal(new int[] {
             32,
             0,
@@ -227,7 +236,7 @@ namespace Sparrow
             // 
             // numDecadesNumeric
             // 
-            this.numDecadesNumeric.Location = new System.Drawing.Point(15, 337);
+            this.numDecadesNumeric.Location = new System.Drawing.Point(9, 278);
             this.numDecadesNumeric.Maximum = new decimal(new int[] {
             25,
             0,
@@ -251,7 +260,7 @@ namespace Sparrow
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(12, 321);
+            this.label5.Location = new System.Drawing.Point(9, 262);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(120, 13);
             this.label5.TabIndex = 17;
@@ -260,7 +269,7 @@ namespace Sparrow
             // label8
             // 
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(170, 216);
+            this.label8.Location = new System.Drawing.Point(156, 157);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(63, 13);
             this.label8.TabIndex = 18;
@@ -268,14 +277,14 @@ namespace Sparrow
             // 
             // timeDec1Numeric
             // 
-            this.timeDec1Numeric.Location = new System.Drawing.Point(15, 91);
+            this.timeDec1Numeric.Location = new System.Drawing.Point(9, 32);
             this.timeDec1Numeric.Name = "timeDec1Numeric";
             this.timeDec1Numeric.Size = new System.Drawing.Size(40, 20);
             this.timeDec1Numeric.TabIndex = 19;
             // 
             // timeDec2Numeric
             // 
-            this.timeDec2Numeric.Location = new System.Drawing.Point(15, 133);
+            this.timeDec2Numeric.Location = new System.Drawing.Point(9, 74);
             this.timeDec2Numeric.Name = "timeDec2Numeric";
             this.timeDec2Numeric.Size = new System.Drawing.Size(40, 20);
             this.timeDec2Numeric.TabIndex = 21;
@@ -288,7 +297,7 @@ namespace Sparrow
             // label10
             // 
             this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(9, 117);
+            this.label10.Location = new System.Drawing.Point(9, 58);
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(112, 13);
             this.label10.TabIndex = 20;
@@ -299,12 +308,92 @@ namespace Sparrow
             this.fftAveragingCheckBox.AutoSize = true;
             this.fftAveragingCheckBox.Checked = true;
             this.fftAveragingCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.fftAveragingCheckBox.Location = new System.Drawing.Point(12, 372);
+            this.fftAveragingCheckBox.Location = new System.Drawing.Point(9, 313);
             this.fftAveragingCheckBox.Name = "fftAveragingCheckBox";
             this.fftAveragingCheckBox.Size = new System.Drawing.Size(96, 17);
             this.fftAveragingCheckBox.TabIndex = 22;
             this.fftAveragingCheckBox.Text = "FFT Averaging";
             this.fftAveragingCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // groupBox1
+            // 
+            this.groupBox1.Controls.Add(this.fftAveragingCheckBox);
+            this.groupBox1.Controls.Add(this.timeDec2Numeric);
+            this.groupBox1.Controls.Add(this.label10);
+            this.groupBox1.Controls.Add(this.timeDec1Numeric);
+            this.groupBox1.Controls.Add(this.label8);
+            this.groupBox1.Controls.Add(this.label5);
+            this.groupBox1.Controls.Add(this.numDecadesNumeric);
+            this.groupBox1.Controls.Add(this.label7);
+            this.groupBox1.Controls.Add(this.downsampleFactorLabel);
+            this.groupBox1.Controls.Add(this.label9);
+            this.groupBox1.Controls.Add(this.downsampleFactorPow2Numeric);
+            this.groupBox1.Controls.Add(this.label6);
+            this.groupBox1.Controls.Add(this.numDownsapledPointsLabel);
+            this.groupBox1.Controls.Add(this.label4);
+            this.groupBox1.Controls.Add(this.resistanceNumeric);
+            this.groupBox1.Controls.Add(this.label3);
+            this.groupBox1.Controls.Add(this.label2);
+            this.groupBox1.Controls.Add(this.numDownsampledPtsPow2Numeric);
+            this.groupBox1.Location = new System.Drawing.Point(15, 74);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(268, 348);
+            this.groupBox1.TabIndex = 23;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "Downsampling";
+            // 
+            // groupBox2
+            // 
+            this.groupBox2.Controls.Add(this.label13);
+            this.groupBox2.Controls.Add(this.singleShotNumPointsLabel);
+            this.groupBox2.Controls.Add(this.label11);
+            this.groupBox2.Controls.Add(this.singleShotNumberPointsPow2Numeric);
+            this.groupBox2.Location = new System.Drawing.Point(15, 437);
+            this.groupBox2.Name = "groupBox2";
+            this.groupBox2.Size = new System.Drawing.Size(257, 110);
+            this.groupBox2.TabIndex = 24;
+            this.groupBox2.TabStop = false;
+            this.groupBox2.Text = "Single Shot";
+            // 
+            // label11
+            // 
+            this.label11.AutoSize = true;
+            this.label11.Location = new System.Drawing.Point(9, 19);
+            this.label11.Name = "label11";
+            this.label11.Size = new System.Drawing.Size(88, 13);
+            this.label11.TabIndex = 23;
+            this.label11.Text = "Number of Points";
+            // 
+            // singleShotNumberPointsPow2Numeric
+            // 
+            this.singleShotNumberPointsPow2Numeric.Location = new System.Drawing.Point(130, 34);
+            this.singleShotNumberPointsPow2Numeric.Name = "singleShotNumberPointsPow2Numeric";
+            this.singleShotNumberPointsPow2Numeric.Size = new System.Drawing.Size(62, 20);
+            this.singleShotNumberPointsPow2Numeric.TabIndex = 0;
+            this.singleShotNumberPointsPow2Numeric.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.singleShotNumberPointsPow2Numeric.ValueChanged += new System.EventHandler(this.singleShotNumberPointsPow2Numeric_ValueChanged);
+            // 
+            // singleShotNumPointsLabel
+            // 
+            this.singleShotNumPointsLabel.AutoSize = true;
+            this.singleShotNumPointsLabel.Location = new System.Drawing.Point(12, 41);
+            this.singleShotNumPointsLabel.Name = "singleShotNumPointsLabel";
+            this.singleShotNumPointsLabel.Size = new System.Drawing.Size(13, 13);
+            this.singleShotNumPointsLabel.TabIndex = 24;
+            this.singleShotNumPointsLabel.Text = "1";
+            // 
+            // label13
+            // 
+            this.label13.AutoSize = true;
+            this.label13.Location = new System.Drawing.Point(127, 18);
+            this.label13.Name = "label13";
+            this.label13.Size = new System.Drawing.Size(37, 13);
+            this.label13.TabIndex = 25;
+            this.label13.Text = "Pow 2";
             // 
             // Sparrow_Options
             // 
@@ -312,26 +401,10 @@ namespace Sparrow
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.cancelButton;
-            this.ClientSize = new System.Drawing.Size(265, 439);
-            this.Controls.Add(this.fftAveragingCheckBox);
-            this.Controls.Add(this.timeDec2Numeric);
-            this.Controls.Add(this.label10);
-            this.Controls.Add(this.timeDec1Numeric);
-            this.Controls.Add(this.label8);
-            this.Controls.Add(this.label5);
-            this.Controls.Add(this.numDecadesNumeric);
-            this.Controls.Add(this.label7);
-            this.Controls.Add(this.downsampleFactorLabel);
-            this.Controls.Add(this.label9);
-            this.Controls.Add(this.downsampleFactorPow2Numeric);
-            this.Controls.Add(this.label6);
-            this.Controls.Add(this.numDownsapledPointsLabel);
-            this.Controls.Add(this.label4);
-            this.Controls.Add(this.resistanceNumeric);
-            this.Controls.Add(this.label3);
-            this.Controls.Add(this.label2);
+            this.ClientSize = new System.Drawing.Size(306, 598);
+            this.Controls.Add(this.groupBox2);
+            this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.label1);
-            this.Controls.Add(this.numDownsampledPtsPow2Numeric);
             this.Controls.Add(this.broadSpecUnitsComboBox);
             this.Controls.Add(this.cancelButton);
             this.Controls.Add(this.okButton);
@@ -345,6 +418,11 @@ namespace Sparrow
             ((System.ComponentModel.ISupportInitialize)(this.numDecadesNumeric)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.timeDec1Numeric)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.timeDec2Numeric)).EndInit();
+            this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
+            this.groupBox2.ResumeLayout(false);
+            this.groupBox2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.singleShotNumberPointsPow2Numeric)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -374,5 +452,11 @@ namespace Sparrow
         private System.Windows.Forms.NumericUpDown timeDec2Numeric;
         private System.Windows.Forms.Label label10;
         private System.Windows.Forms.CheckBox fftAveragingCheckBox;
+        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.GroupBox groupBox2;
+        private System.Windows.Forms.Label label11;
+        private System.Windows.Forms.NumericUpDown singleShotNumberPointsPow2Numeric;
+        private System.Windows.Forms.Label label13;
+        private System.Windows.Forms.Label singleShotNumPointsLabel;
     }
 }

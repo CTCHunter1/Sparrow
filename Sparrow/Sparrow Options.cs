@@ -10,6 +10,7 @@ namespace Sparrow
 {
     public partial class Sparrow_Options : Form
     {
+        //  downsampling
         private int backupBroadIndex;
         private decimal backupTimeDecGraph1;
         private decimal backupTimeDecGraph2;
@@ -19,11 +20,32 @@ namespace Sparrow
         private decimal backupNumDecades;
         private bool backupFFTAveraging;
 
+        // single shot
+        private decimal backupSingleShotNumPts;
+
+
         public Sparrow_Options()
         {
             InitializeComponent();
 
             broadSpecUnitsComboBox.SelectedIndex = 1;
+        }
+
+        private void View_Options_Shown(object sender, EventArgs e)
+        {
+            backupBroadIndex = broadSpecUnitsComboBox.SelectedIndex;
+            backupTimeDecGraph1 = timeDec1Numeric.Value;
+            backupTimeDecGraph2 = timeDec2Numeric.Value;
+            backupNumDownsampledPtsPow2 = numDownsampledPtsPow2Numeric.Value;
+            backupDownsapledFactorPow2 = downsampleFactorPow2Numeric.Value;
+            backupResistance = resistanceNumeric.Value;
+            backupNumDecades = numDecadesNumeric.Value;
+            backupFFTAveraging = fftAveragingCheckBox.Checked;
+            backupSingleShotNumPts = singleShotNumberPointsPow2Numeric.Value;
+
+            // update the power of 2 labels
+            downsampleFactorLabel.Text = Math.Pow(2.0, Convert.ToDouble(downsampleFactorPow2Numeric.Value)).ToString("0");
+            numDownsapledPointsLabel.Text = Math.Pow(2.0, Convert.ToDouble(numDownsampledPtsPow2Numeric.Value)).ToString("0");
         }
 
         private void cancelButton_Click(object sender, EventArgs e)
@@ -37,6 +59,7 @@ namespace Sparrow
             resistanceNumeric.Value = backupResistance;
             numDecadesNumeric.Value = backupNumDecades;
             fftAveragingCheckBox.Checked = backupFFTAveraging;
+            singleShotNumberPointsPow2Numeric.Value = backupSingleShotNumPts;
         }
 
         public AmpUnits BroadAmpUnits
@@ -107,20 +130,12 @@ namespace Sparrow
             }
         }
 
-        private void View_Options_Shown(object sender, EventArgs e)
+        public int SingleShotNumPoints
         {
-            backupBroadIndex = broadSpecUnitsComboBox.SelectedIndex;
-            backupTimeDecGraph1 = timeDec1Numeric.Value;
-            backupTimeDecGraph2 = timeDec2Numeric.Value;
-            backupNumDownsampledPtsPow2 = numDownsampledPtsPow2Numeric.Value;
-            backupDownsapledFactorPow2 = downsampleFactorPow2Numeric.Value;
-            backupResistance = resistanceNumeric.Value;
-            backupNumDecades = numDecadesNumeric.Value;
-            backupFFTAveraging = fftAveragingCheckBox.Checked;
-
-            // update the power of 2 labels
-            downsampleFactorLabel.Text = Math.Pow(2.0, Convert.ToDouble(downsampleFactorPow2Numeric.Value)).ToString("0");
-            numDownsapledPointsLabel.Text = Math.Pow(2.0, Convert.ToDouble(numDownsampledPtsPow2Numeric.Value)).ToString("0");
+            get
+            {
+                return (Convert.ToInt32(Math.Pow(2,Convert.ToDouble(singleShotNumberPointsPow2Numeric.Value))));
+            }
         }
 
         private void numDownsampledPtsPow2Numeric_ValueChanged(object sender, EventArgs e)
@@ -147,6 +162,11 @@ namespace Sparrow
 
             timeDec1Numeric.Maximum = numDecadesNumeric.Value;
             timeDec2Numeric.Maximum = numDecadesNumeric.Value;
+        }
+
+        private void singleShotNumberPointsPow2Numeric_ValueChanged(object sender, EventArgs e)
+        {
+            singleShotNumPointsLabel.Text = Math.Pow(2.0, Convert.ToDouble(singleShotNumberPointsPow2Numeric.Value)).ToString("0");
         }
 
 

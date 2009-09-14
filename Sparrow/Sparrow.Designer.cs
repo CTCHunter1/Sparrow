@@ -39,6 +39,7 @@ namespace Sparrow
             this.startToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.stopToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.restartToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.singleShotToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.timeGraph1 = new GraphControl.GraphControl();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.label4 = new System.Windows.Forms.Label();
@@ -56,6 +57,7 @@ namespace Sparrow
             this.statusStrip = new System.Windows.Forms.StatusStrip();
             this.toolStripProgressBar = new System.Windows.Forms.ToolStripProgressBar();
             this.toolStripStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
+            this.saveSingleShotToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -79,6 +81,7 @@ namespace Sparrow
             // 
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.saveToolStripMenuItem,
+            this.saveSingleShotToolStripMenuItem,
             this.exitToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             this.fileToolStripMenuItem.Size = new System.Drawing.Size(35, 20);
@@ -87,14 +90,14 @@ namespace Sparrow
             // saveToolStripMenuItem
             // 
             this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-            this.saveToolStripMenuItem.Size = new System.Drawing.Size(109, 22);
+            this.saveToolStripMenuItem.Size = new System.Drawing.Size(165, 22);
             this.saveToolStripMenuItem.Text = "Save";
             this.saveToolStripMenuItem.Click += new System.EventHandler(this.saveToolStripMenuItem_Click);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(109, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(165, 22);
             this.exitToolStripMenuItem.Text = "Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
@@ -126,7 +129,8 @@ namespace Sparrow
             this.controlToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.startToolStripMenuItem,
             this.stopToolStripMenuItem,
-            this.restartToolStripMenuItem});
+            this.restartToolStripMenuItem,
+            this.singleShotToolStripMenuItem});
             this.controlToolStripMenuItem.Name = "controlToolStripMenuItem";
             this.controlToolStripMenuItem.Size = new System.Drawing.Size(54, 20);
             this.controlToolStripMenuItem.Text = "Control";
@@ -134,23 +138,30 @@ namespace Sparrow
             // startToolStripMenuItem
             // 
             this.startToolStripMenuItem.Name = "startToolStripMenuItem";
-            this.startToolStripMenuItem.Size = new System.Drawing.Size(121, 22);
+            this.startToolStripMenuItem.Size = new System.Drawing.Size(138, 22);
             this.startToolStripMenuItem.Text = "Start";
             this.startToolStripMenuItem.Click += new System.EventHandler(this.startToolStripMenuItem_Click);
             // 
             // stopToolStripMenuItem
             // 
             this.stopToolStripMenuItem.Name = "stopToolStripMenuItem";
-            this.stopToolStripMenuItem.Size = new System.Drawing.Size(121, 22);
+            this.stopToolStripMenuItem.Size = new System.Drawing.Size(138, 22);
             this.stopToolStripMenuItem.Text = "Stop";
             this.stopToolStripMenuItem.Click += new System.EventHandler(this.stopToolStripMenuItem_Click);
             // 
             // restartToolStripMenuItem
             // 
             this.restartToolStripMenuItem.Name = "restartToolStripMenuItem";
-            this.restartToolStripMenuItem.Size = new System.Drawing.Size(121, 22);
+            this.restartToolStripMenuItem.Size = new System.Drawing.Size(138, 22);
             this.restartToolStripMenuItem.Text = "Restart";
             this.restartToolStripMenuItem.Click += new System.EventHandler(this.restartToolStripMenuItem_Click);
+            // 
+            // singleShotToolStripMenuItem
+            // 
+            this.singleShotToolStripMenuItem.Name = "singleShotToolStripMenuItem";
+            this.singleShotToolStripMenuItem.Size = new System.Drawing.Size(138, 22);
+            this.singleShotToolStripMenuItem.Text = "Single Shot";
+            this.singleShotToolStripMenuItem.Click += new System.EventHandler(this.singleShotToolStripMenuItem_Click);
             // 
             // timeGraph1
             // 
@@ -331,6 +342,14 @@ namespace Sparrow
             this.toolStripStatusLabel.Text = "Test Text";
             this.toolStripStatusLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
+            // saveSingleShotToolStripMenuItem
+            // 
+            this.saveSingleShotToolStripMenuItem.Enabled = false;
+            this.saveSingleShotToolStripMenuItem.Name = "saveSingleShotToolStripMenuItem";
+            this.saveSingleShotToolStripMenuItem.Size = new System.Drawing.Size(165, 22);
+            this.saveSingleShotToolStripMenuItem.Text = "Save Single Shot";
+            this.saveSingleShotToolStripMenuItem.Click += new System.EventHandler(this.saveSingleShotToolStripMenuItem_Click);
+            // 
             // Sparrow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -387,6 +406,8 @@ namespace Sparrow
         private System.Windows.Forms.ToolStripMenuItem stopToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem restartToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem saveToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem singleShotToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem saveSingleShotToolStripMenuItem;
     }
 }
 
