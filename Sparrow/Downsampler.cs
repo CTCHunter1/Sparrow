@@ -28,6 +28,19 @@ namespace Sparrow
 
         private bool bFFTAveraging = false;
 
+        private int pointsAdded = 0;
+
+        // log variables
+        int iNumLogfPts = 0;    // the number of logf points            
+        int origionalStartIndex = 0;
+        int origionalStopIndex = 0;
+        int firstDecStartIndex = 0;
+        int firstDecStopIndex = 0;
+        int secondDecStartIndex = 0;
+        int secondDecStopIndex = 0;
+        int lastDecStartIndex = 0;
+        int lastDecStopIndex = 0;
+
         public DownSampler(DataSeries origioalDataSeriesObj, int downsamplingFactor, int pointsPerDecade, int numDecadesToDownSample, AmpUnits fourierAmpUnits, double resistance)
         {
             origionalDataSeries = origioalDataSeriesObj;
@@ -177,22 +190,18 @@ namespace Sparrow
                 double pt = sosFilterObj.AddPoint(origionalDataSeries.Y_t[i]);
 
                 if ((i % mDownsamplingFactor) == (mDownsamplingFactor - 1))
-                    downsampledNodes[0].AddPoint(pt, pBar);               
-            }
-
-            /*
-            // because the data is coming in in 2^n multiple powers
-            // and the downsampling factor must be a power of 2
-            // the downsampled data sets can only add 1, 2, 4,.. 2^n points per  update
-            // update the lowest downsampled data series
-            for (int i = 1; i <= pointsPerUpdate; i++)
-            {
                 {
-                    downsampledNodes[0].AddPoint(
-                    downsampledNodes[0].GetAverageFromDoubleArray(
-                    origionalDataSeries.Y_t, i * mDownsamplingFactor - 1, mDownsamplingFactor), pBar);
+                    if (pointsAdded > sosFilterObj.Order)
+                    {
+                        downsampledNodes[0].AddPoint(pt, pBar);
+                    }
+                    else
+                    {
+                        pointsAdded++;
+                    }
+
                 }
-            }*/
+            }
 
         }
 
@@ -205,85 +214,158 @@ namespace Sparrow
 
         private double[] CreateDownsampledFrequency()
         {
+            int numOrigionalDataPoints = 0;
+            int numFirstDecPoints = 0;
+            int numSecondDecPonits = 0;
+            int numLastDecPoints = 0;
+
+            // decade 1 points per origioal data set ponits
+            int dec1Ratio = (int)(origionalDataSeries.DeltaF/downsampledNodes[0].DeltaF); // radio of frequencies in origional series
+                                                                                        // and downsampled series
+            double downsampleFract = (double) (mDownsamplingFactor - 1) / mDownsamplingFactor;
+            int rollOver = 20; // number of points to continue into the next decade
+
+            if(mNumDecades == 0)
+            {
+                iNumLogfPts = (int) (origionalDataSeries.NumPoints / 2.0);
+            } 
+            else
+            {
+                // number of points to use from the origional data set
+                numOrigionalDataPoints = (int) ((origionalDataSeries.NumPoints / 2.0) * downsampleFract); // number of points up to nyquist of next frequency
+                numOrigionalDataPoints += rollOver; // number of addtional points in first series
+            
+                if(mNumDecades == 1)
+                {
+                    // there is only one decade
+                    numFirstDecPoints = (int) ((mPointsPerDecade / 2.0)); // number of points up to nyquist of dec 2            
+                    iNumLogfPts = numOrigionalDataPoints + numFirstDecPoints;
+                }
+                else 
+                {
+                    numFirstDecPoints = (int) ((mPointsPerDecade / 2.0) * downsampleFract); // number of points up to nyquist of dec 2
+                        numFirstDecPoints -= rollOver*dec1Ratio; // number of points removed by rolling over from origional series
+                        numFirstDecPoints += rollOver;           // number of points added past nyquist in next decade             
+
+                    numSecondDecPonits = (int) ((mPointsPerDecade / 2.0) * downsampleFract); // number of points up to nyquist of dec 3
+                        numSecondDecPonits -=  rollOver*mDownsamplingFactor;    // number of points removed by rolling over decade 1
+                        numSecondDecPonits += rollOver;         // number of points added into nyquist in the next decade
+
+                    numLastDecPoints = (mPointsPerDecade / 2);
+                        numLastDecPoints -= rollOver*mDownsamplingFactor;   // number of points removed by rolling over decade 2                
+
+                    iNumLogfPts = numOrigionalDataPoints + numFirstDecPoints + numSecondDecPonits * (mNumDecades - 2) + numLastDecPoints;
+
+                }
+            }
+
+            /*
             int iNumLogfPts = (origionalDataSeries.NumPoints / 2) * (mDownsamplingFactor - 1) / mDownsamplingFactor +
                 (mNumDecades - 1) * (mPointsPerDecade / 2 * (mDownsamplingFactor - 1)) / mDownsamplingFactor +
-                mPointsPerDecade / 2;
+                mPointsPerDecade / 2; */
 
             double[] fLogArr = new double[iNumLogfPts];
 
             //copy backwards
-            int fIndex = iNumLogfPts - 1;      // index to use for the fLogArr
+            int fIndex = iNumLogfPts - 1;      // indexer for the fLogArr
 
             // copy the origial data frequencies (do not copy this index)
-            int stopIndex = (origionalDataSeries.NumPoints / 2) / mDownsamplingFactor;
+            origionalStartIndex = (origionalDataSeries.NumPoints / 2) - 1;
+            origionalStopIndex = origionalStartIndex - numOrigionalDataPoints+1;
 
-            for (int i = origionalDataSeries.NumPoints / 2 - 1; i >= stopIndex; i--)
+            for (int i = origionalStartIndex; i >= origionalStopIndex; i--)
             {
                 fLogArr[fIndex] = origionalDataSeries.FrequencyHalfArr[i];
                 fIndex--;
             }
 
-            // for each decade copy out the frequencies
-            stopIndex = (mPointsPerDecade / 2) / mDownsamplingFactor;
-
-            for (int i = 0; i < (mNumDecades - 1); i++)
+            if(mNumDecades >= 1)
             {
-                for (int j = mPointsPerDecade / 2 - 1; j >= stopIndex; j--)
+                // copy out the first decade
+                firstDecStartIndex = mPointsPerDecade / 2 - 1 - rollOver * dec1Ratio;
+                firstDecStopIndex = firstDecStartIndex - numFirstDecPoints+1;
+
+                for (int j = firstDecStartIndex; j >= firstDecStopIndex; j--)
                 {
-                    fLogArr[fIndex] = downsampledNodes[i].FrequencyHalfArr[j];
+                    fLogArr[fIndex] = downsampledNodes[0].FrequencyHalfArr[j];
                     fIndex--;
                 }
             }
 
-            for (int j = mPointsPerDecade / 2 - 1; j >= 0; j--)
+            if(mNumDecades >= 2)
             {
-                fLogArr[fIndex] = downsampledNodes[mNumDecades - 1].FrequencyHalfArr[j];
-                fIndex--;
-            }
+                secondDecStartIndex = mPointsPerDecade / 2 - 1 - rollOver * mDownsamplingFactor;
+                secondDecStopIndex = secondDecStartIndex - numSecondDecPonits+1;
+
+                // copy the decades between the first and the last
+                for (int i = 1; i <= (mNumDecades - 2); i++)
+                {
+                    for (int j = secondDecStartIndex; j >= secondDecStopIndex; j--)
+                    {
+                        fLogArr[fIndex] = downsampledNodes[i].FrequencyHalfArr[j];
+                        fIndex--;
+                    }
+                }
+
+                // copy the last decade
+                lastDecStartIndex = mPointsPerDecade / 2 - 1 - rollOver * mDownsamplingFactor;
+                lastDecStopIndex = lastDecStartIndex - numLastDecPoints+1;
+
+                for (int j = lastDecStartIndex; j >= lastDecStopIndex; j--)
+                {
+                    fLogArr[fIndex] = downsampledNodes[mNumDecades - 1].FrequencyHalfArr[j];
+                    fIndex--;
+                }                
+            }                                          
 
             return (fLogArr);
         }
 
         private double[] GetDownsampledY_fLog()
         {
-            int iNumLogfPts = mFLogArr.Length;
-
             double[] y_fLog = new double[iNumLogfPts];
-
-            //copy backwards
-            int yIndex = iNumLogfPts - 1;      // index to use for the fLogArr
 
             // update the FFT first
             origionalDataSeries.UpdateFFT();
-            // copy the origial data frequencies (do not copy this index)
-            int stopIndex = (origionalDataSeries.NumPoints / 2) / mDownsamplingFactor;
-            for (int i = origionalDataSeries.NumPoints / 2 - 1; i >= stopIndex; i--)
+            
+
+            //copy backwards
+            int yIndex = iNumLogfPts - 1;      // indexer for the fLogArr
+            
+            for (int i = origionalStartIndex; i >= origionalStopIndex; i--)
             {
-                double[] y_temp = origionalDataSeries.YAbs_fHalf;
-                y_fLog[yIndex] = y_temp[i];
+                y_fLog[yIndex] = origionalDataSeries.YAbs_fHalf[i];
                 yIndex--;
             }
 
-            // for each decade copy out the frequencies
-            stopIndex = (mPointsPerDecade / 2) / mDownsamplingFactor;
-
-            for (int i = 0; i < (mNumDecades - 1); i++)
+            if (mNumDecades >= 1)
             {
-                downsampledNodes[i].UpdateFFT();        // update the fft for this node
-                for (int j = mPointsPerDecade / 2 - 1; j >= stopIndex; j--)
+                // copy out the first decade                
+                for (int j = firstDecStartIndex; j >= firstDecStopIndex; j--)
                 {
-                    double[] y_temp = downsampledNodes[i].YAbs_fHalf;
-                    y_fLog[yIndex] = y_temp[j];
+                    y_fLog[yIndex] = downsampledNodes[0].YAbs_fHalf[j];
                     yIndex--;
                 }
             }
 
-            downsampledNodes[mNumDecades - 1].UpdateFFT();
-            for (int j = mPointsPerDecade / 2 - 1; j >= 0; j--)
-            {
-                double[] y_temp = downsampledNodes[mNumDecades - 1].YAbs_fHalf;
-                y_fLog[yIndex] = y_temp[j];
-                yIndex--;
+            if (mNumDecades >= 2)
+            {                
+                // copy the decades between the first and the last
+                for (int i = 1; i <= (mNumDecades - 2); i++)
+                {
+                    for (int j = secondDecStartIndex; j >= secondDecStopIndex; j--)
+                    {
+                        y_fLog[yIndex] = downsampledNodes[i].YAbs_fHalf[j];
+                        yIndex--;
+                    }
+                }
+
+                // copy the last decade                
+                for (int j = lastDecStartIndex; j >= lastDecStopIndex; j--)
+                {
+                    y_fLog[yIndex] = downsampledNodes[mNumDecades - 1].YAbs_fHalf[j];
+                    yIndex--;
+                }
             }
 
             return (y_fLog);
@@ -291,44 +373,49 @@ namespace Sparrow
 
         private double[] GetDownsampledYAvg_fLog()
         {
-            int iNumLogfPts = mFLogArr.Length;
-
             double[] y_fLog = new double[iNumLogfPts];
-
-            //copy backwards
-            int yIndex = iNumLogfPts - 1;      // index to use for the fLogArr
 
             // update the FFT first
             origionalDataSeries.UpdateFFT();
-            // copy the origial data frequencies (do not copy this index)
-            int stopIndex = (origionalDataSeries.NumPoints / 2) / mDownsamplingFactor;
-            for (int i = origionalDataSeries.NumPoints / 2 - 1; i >= stopIndex; i--)
+            
+
+            //copy backwards
+            int yIndex = iNumLogfPts - 1;      // indexer for the fLogArr
+            
+            for (int i = origionalStartIndex; i >= origionalStopIndex; i--)
             {
-                double[] y_temp = origionalDataSeries.YAbsAvg_fHalf;
-                y_fLog[yIndex] = y_temp[i];
+                y_fLog[yIndex] = origionalDataSeries.YAbsAvg_fHalf[i];
                 yIndex--;
             }
 
-            // for each decade copy out the frequencies
-            stopIndex = (mPointsPerDecade / 2) / mDownsamplingFactor;
-
-            for (int i = 0; i < (mNumDecades - 1); i++)
+            if (mNumDecades >= 1)
             {
-                downsampledNodes[i].UpdateFFT();        // update the fft for this node
-                for (int j = mPointsPerDecade / 2 - 1; j >= stopIndex; j--)
+                // copy out the first decade                
+                for (int j = firstDecStartIndex; j >= firstDecStopIndex; j--)
                 {
-                    double[] y_temp = downsampledNodes[i].YAbsAvg_fHalf;
-                    y_fLog[yIndex] = y_temp[j];
+                    y_fLog[yIndex] = downsampledNodes[0].YAbsAvg_fHalf[j];
                     yIndex--;
                 }
             }
 
-            downsampledNodes[mNumDecades - 1].UpdateFFT();
-            for (int j = mPointsPerDecade / 2 - 1; j >= 0; j--)
-            {
-                double[] y_temp = downsampledNodes[mNumDecades - 1].YAbsAvg_fHalf;
-                y_fLog[yIndex] = y_temp[j];
-                yIndex--;
+            if (mNumDecades >= 2)
+            {                
+                // copy the decades between the first and the last
+                for (int i = 1; i <= (mNumDecades - 2); i++)
+                {
+                    for (int j = secondDecStartIndex; j >= secondDecStopIndex; j--)
+                    {
+                        y_fLog[yIndex] = downsampledNodes[i].YAbsAvg_fHalf[j];
+                        yIndex--;
+                    }
+                }
+
+                // copy the last decade                
+                for (int j = lastDecStartIndex; j >= lastDecStopIndex; j--)
+                {
+                    y_fLog[yIndex] = downsampledNodes[mNumDecades - 1].YAbsAvg_fHalf[j];
+                    yIndex--;
+                }
             }
 
             return (y_fLog);

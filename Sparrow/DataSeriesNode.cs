@@ -8,10 +8,11 @@ namespace Sparrow
     public class DataSeriesNode : DataSeries
     {
         private DataSeriesNode mNextNode;
-        private int mDownsamplingFactor = 0;
+        
         SOSFilter sosFilterObj;
         private double[] mFilteredArr;
-        
+        private int pointsAdded = 0;
+
 
         public DataSeriesNode(int numPts, double sampleRate, AmpUnits fourierAmpUnits, double resistance, bool updateFFT,
             int downsamplingFactor, SOSFilter filterObj, DataSeriesNode nextNode)
@@ -38,6 +39,7 @@ namespace Sparrow
         public override void AddPoint(double pt, ToolStripProgressBar pBar)
         {
             //pt = pt * Math.Sqrt(mDownsamplingFactor);
+            // pt = pt * mDownsamplingFactor;
             // add the point to the array
             base.y_t[ptIndex] = pt;
             mFilteredArr[ptIndex] = sosFilterObj.AddPoint(pt);
@@ -46,7 +48,14 @@ namespace Sparrow
             {
                 if (mNextNode != null)
                 {
-                    mNextNode.AddPoint(mFilteredArr[ptIndex], pBar);
+                    if (pointsAdded > sosFilterObj.Order)
+                    {
+                        mNextNode.AddPoint(mFilteredArr[ptIndex], pBar);
+                    }
+                    else
+                    {
+                        pointsAdded++;
+                    }
                     // average the last mDowsamplingFactor points and add them to the next node
                     //mNextNode.AddPoint(GetAverageFromDoubleArray(base.y_t,
                     //    ptIndex, mDownsamplingFactor), pBar);
@@ -62,7 +71,7 @@ namespace Sparrow
                     catch (NullReferenceException) { };
                 }
             }
-
+                        
             base.ptIndex++;
 
             // reset the point index if it exceeds the length of the array

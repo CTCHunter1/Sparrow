@@ -9,16 +9,22 @@ namespace Sparrow
     {
         SecondOrderSection[] sosArr;
 
+        int order;
+
         public SOSFilter(StreamReader srObj)
         {
             char [] delminterChars = {','};
             List<SecondOrderSection> sosList = new List<SecondOrderSection>();
-        
 
+            string strLine = srObj.ReadLine();
+            string[] values = strLine.Split(delminterChars);
+
+            order = Convert.ToInt32(values[0]);
+                
             while (srObj.EndOfStream != true)
             {
-                string strLine = srObj.ReadLine();            
-                string[] values = strLine.Split(delminterChars);
+                strLine = srObj.ReadLine();
+                values = strLine.Split(delminterChars);
                 // values should only be 6 items long
                 if (values.Length > 8)
                 {
@@ -52,6 +58,14 @@ namespace Sparrow
             }
 
             return (filtPt);
+        }
+
+        public int Order
+        {
+            get
+            {
+                return (order);
+            }
         }
     }
 }

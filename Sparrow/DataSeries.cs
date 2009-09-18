@@ -30,6 +30,7 @@ namespace Sparrow
 
         protected int ptIndex = 0;
         protected int mNumPts;
+        protected int mDownsamplingFactor = 0;
         private double fSample;
         private double mResistance;
 
@@ -175,6 +176,14 @@ namespace Sparrow
             }
         }
 
+        public double DeltaF
+        {
+            get
+            {
+                return (1 / T0);
+            }
+        }
+
         public double[] YAbs_fHalf
         {
             get
@@ -292,23 +301,10 @@ namespace Sparrow
     
                     for (int i = 0; i < realArr.Length; i++)
                     {
-                        modArr[i] = 10 * Math.Log10((realArr[i] * realArr[i] + imagArr[i] * imagArr[i])/(fSample*fSample*T0)) + 60; // +scale_factor      
-                        //modArr[i] = (realArr[i] * realArr[i] + imagArr[i] * imagArr[i])/(fSample*fSample*T0*T0);
-                        // Check that the abs was not zero
+                        modArr[i] = 10 * Math.Log10((realArr[i] * realArr[i] + imagArr[i] * imagArr[i])/(fSample*fSample*T0)) + 60; // +scale_factor   
+
                         if (modArr[i] < -140)
                             modArr[i] = -140;
-
-                        /* Max Capture Code
-                        if (graphNum == 1)
-                        {
-                            if (modArr[i] > maxBroadArr[0])
-                                maxBroadArr[0] = modArr[i];
-                            else if (modArr[i] > maxBroadArr[1])
-                                maxBroadArr[1] = modArr[i];
-                            else if (modArr[i] > maxBroadArr[2])
-                                maxBroadArr[2] = modArr[i];
-                        }
-                        */
                     }
                     break;
 
@@ -365,6 +361,7 @@ namespace Sparrow
 
             for (int i = 0; i < retArr.Length; i++)
             {
+                // the + 1 avoids the copying of the zero
                 retArr[i] = arr[i + 1];
             }
 
@@ -391,7 +388,8 @@ namespace Sparrow
                 {
                     case AmpUnits.dBm:
                     case AmpUnits.dBmV:
-                        yAbsAvg_f[i] = 20*Math.Log10((numFFTs * Math.Pow(10,yAbsAvg_f[i]/20) + Math.Pow(10,yNew[i]/20)) / (double)(numFFTs + 1));
+                        //yAbsAvg_f[i] = 10*Math.Log10((numFFTs * Math.Pow(10,yAbsAvg_f[i]/10) + Math.Pow(10,yNew[i]/10)) / (double)(numFFTs + 1)); // additive mean
+                        yAbsAvg_f[i] = (numFFTs * yAbsAvg_f[i] + yNew[i]) / (double)(numFFTs + 1);      // geometrical mean
                         break;
 
                     case AmpUnits.V:
@@ -402,7 +400,7 @@ namespace Sparrow
             
             numFFTs++;
 
-           ///yAbsAvg_f = GetModulous(yRealAvg_f, yImagAvg_f);
+           //yAbsAvg_f = GetModulous(yRealAvg_f, yImagAvg_f);
         }
         
         double GetPowerTimeDomain(double [] x_t)

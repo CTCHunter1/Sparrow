@@ -38,12 +38,12 @@ namespace Sparrow
             this.minimumLabel = new System.Windows.Forms.Label();
             this.physicalChannelLabel = new System.Windows.Forms.Label();
             this.timingParametersGroupBox = new System.Windows.Forms.GroupBox();
+            this.samplesPerChannelLabel = new System.Windows.Forms.Label();
+            this.label1 = new System.Windows.Forms.Label();
             this.rateNumeric = new System.Windows.Forms.NumericUpDown();
             this.samplesLabel = new System.Windows.Forms.Label();
             this.rateLabel = new System.Windows.Forms.Label();
             this.samplesPerChannelNumeric = new System.Windows.Forms.NumericUpDown();
-            this.label1 = new System.Windows.Forms.Label();
-            this.samplesPerChannelLabel = new System.Windows.Forms.Label();
             this.channelParametersGroupBox.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.minimumValueNumeric)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.maximumValueNumeric)).BeginInit();
@@ -187,6 +187,24 @@ namespace Sparrow
             this.timingParametersGroupBox.TabStop = false;
             this.timingParametersGroupBox.Text = "Timing Parameters";
             // 
+            // samplesPerChannelLabel
+            // 
+            this.samplesPerChannelLabel.AutoSize = true;
+            this.samplesPerChannelLabel.Location = new System.Drawing.Point(117, 29);
+            this.samplesPerChannelLabel.Name = "samplesPerChannelLabel";
+            this.samplesPerChannelLabel.Size = new System.Drawing.Size(31, 13);
+            this.samplesPerChannelLabel.TabIndex = 5;
+            this.samplesPerChannelLabel.Text = "1024";
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(161, 8);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(37, 13);
+            this.label1.TabIndex = 4;
+            this.label1.Text = "Pow 2";
+            // 
             // rateNumeric
             // 
             this.rateNumeric.DecimalPlaces = 2;
@@ -200,7 +218,7 @@ namespace Sparrow
             this.rateNumeric.Size = new System.Drawing.Size(96, 20);
             this.rateNumeric.TabIndex = 3;
             this.rateNumeric.Value = new decimal(new int[] {
-            100000,
+            10000,
             0,
             0,
             0});
@@ -240,24 +258,6 @@ namespace Sparrow
             0,
             0});
             this.samplesPerChannelNumeric.ValueChanged += new System.EventHandler(this.samplesPerChannelNumeric_ValueChanged);
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(161, 8);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(37, 13);
-            this.label1.TabIndex = 4;
-            this.label1.Text = "Pow 2";
-            // 
-            // samplesPerChannelLabel
-            // 
-            this.samplesPerChannelLabel.AutoSize = true;
-            this.samplesPerChannelLabel.Location = new System.Drawing.Point(117, 29);
-            this.samplesPerChannelLabel.Name = "samplesPerChannelLabel";
-            this.samplesPerChannelLabel.Size = new System.Drawing.Size(31, 13);
-            this.samplesPerChannelLabel.TabIndex = 5;
-            this.samplesPerChannelLabel.Text = "1024";
             // 
             // NI6251_Options
             // 
