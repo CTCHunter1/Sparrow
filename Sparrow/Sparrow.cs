@@ -41,6 +41,7 @@ namespace Sparrow
         private bool aquireData = false;
 
         private int singleShotCalls = 0;
+        private int iRestart = 0;
 
         // update timer
         Timer timerObj;
@@ -136,6 +137,15 @@ namespace Sparrow
                     case -200279:
                         //underread error, restart
                         StopAquire();
+                        iRestart++;
+                        if (iRestart < 10)
+                        {
+                            StreamWriter sw_obj = new StreamWriter(AppDomain.CurrentDomain.BaseDirectory + "Restart" + iRestart + ".csv");
+
+                            WriteDataFile(sw_obj);
+
+                            sw_obj.Close();
+                        }
                         StartAquire();
                         break;
 

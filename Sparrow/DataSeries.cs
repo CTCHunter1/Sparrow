@@ -282,26 +282,20 @@ namespace Sparrow
 
         private double[] GetModulous(double[] realArr, double[] imagArr)
         {
-            double scale_factor = .5 / (Convert.ToDouble(realArr.Length)); // this scale factor asummes the sampled window is repeated for a full second
+            double scale_factor_lin = 1 / (fSample * fSample * T0);
+            double scale_factor_dBmV = -10 * Math.Log10(fSample * fSample * T0) + 60;
+            double scale_factor_dBm = scale_factor_dBmV - 10 * Math.Log10(mResistance);
 
             // the scale factor is need because of implicit windowing of the transform                    
             double[] modArr = new double[realArr.Length];
-
-            /*
-            maxBroadArr[0] = -1E8;
-            maxBroadArr[1] = -1E8;
-            maxBroadArr[2] = -1E8;
-
-            */
+                       
             switch (mAmpUnits)
             {
                 case AmpUnits.dBmV:
-                    // overwrite the scale factor with the addition for dBmV
-                    scale_factor = 20 * Math.Log10(scale_factor) + 60;
     
                     for (int i = 0; i < realArr.Length; i++)
                     {
-                        modArr[i] = 10 * Math.Log10((realArr[i] * realArr[i] + imagArr[i] * imagArr[i])/(fSample*fSample*T0)) + 60; // +scale_factor   
+                        modArr[i] = 10 * Math.Log10((realArr[i] * realArr[i] + imagArr[i] * imagArr[i])) + scale_factor_dBmV;
 
                         if (modArr[i] < -140)
                             modArr[i] = -140;
@@ -311,42 +305,19 @@ namespace Sparrow
                 case AmpUnits.V:
                     for (int i = 0; i < realArr.Length; i++)
                     {
-                        modArr[i] = scale_factor * Math.Sqrt((realArr[i] * realArr[i] + imagArr[i] * imagArr[i]));
-                        /* Max Capture Code
-                        if (graphNum == 1)
-                        {
-                            if (modArr[i] > maxBroadArr[0])
-                                maxBroadArr[0] = modArr[i];
-                            else if (modArr[i] > maxBroadArr[1])
-                                maxBroadArr[1] = modArr[i];
-                            else if (modArr[i] > maxBroadArr[2])
-                                maxBroadArr[2] = modArr[i];
-                        }*/
+                        modArr[i] = scale_factor_lin * Math.Sqrt((realArr[i] * realArr[i] + imagArr[i] * imagArr[i]));
+
                     }
                     break;
 
                 case AmpUnits.dBm:
-                    // overwrite scale factor with the addtion factor for dBm
-                    scale_factor = 20 * Math.Log10(scale_factor) + -10 * Math.Log10(mResistance) + 30;
-
                     for (int i = 0; i < realArr.Length; i++)
                     {
-                        modArr[i] = 10 * Math.Log10(realArr[i] * realArr[i] + imagArr[i] * imagArr[i]) + scale_factor;
+                        modArr[i] = 10 * Math.Log10(realArr[i] * realArr[i] + imagArr[i] * imagArr[i]) + scale_factor_dBm;
                         // Check that the abs was not zero
                         if (modArr[i] < -140)
                             modArr[i] = -140;
 
-                        /* Max Caputure Code
-                        if (graphNum == 1)
-                        {
-                            if (modArr[i] > maxBroadArr[0])
-                                maxBroadArr[0] = modArr[i];
-                            else if (modArr[i] > maxBroadArr[1])
-                                maxBroadArr[1] = modArr[i];
-                            else if (modArr[i] > maxBroadArr[2])
-                                maxBroadArr[2] = modArr[i];
-                        }
-                        */
                     }
                     break;
 
