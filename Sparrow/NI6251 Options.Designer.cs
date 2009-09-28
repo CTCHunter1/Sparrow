@@ -31,6 +31,8 @@ namespace Sparrow
             this.ok_button = new System.Windows.Forms.Button();
             this.cancel_button = new System.Windows.Forms.Button();
             this.channelParametersGroupBox = new System.Windows.Forms.GroupBox();
+            this.label2 = new System.Windows.Forms.Label();
+            this.terminalModeComboBox = new System.Windows.Forms.ComboBox();
             this.physicalChannelComboBox = new System.Windows.Forms.ComboBox();
             this.minimumValueNumeric = new System.Windows.Forms.NumericUpDown();
             this.maximumValueNumeric = new System.Windows.Forms.NumericUpDown();
@@ -55,7 +57,7 @@ namespace Sparrow
             // ok_button
             // 
             this.ok_button.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.ok_button.Location = new System.Drawing.Point(15, 256);
+            this.ok_button.Location = new System.Drawing.Point(15, 292);
             this.ok_button.Name = "ok_button";
             this.ok_button.Size = new System.Drawing.Size(75, 23);
             this.ok_button.TabIndex = 0;
@@ -66,7 +68,7 @@ namespace Sparrow
             // cancel_button
             // 
             this.cancel_button.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.cancel_button.Location = new System.Drawing.Point(164, 256);
+            this.cancel_button.Location = new System.Drawing.Point(164, 292);
             this.cancel_button.Name = "cancel_button";
             this.cancel_button.Size = new System.Drawing.Size(75, 23);
             this.cancel_button.TabIndex = 1;
@@ -76,6 +78,8 @@ namespace Sparrow
             // 
             // channelParametersGroupBox
             // 
+            this.channelParametersGroupBox.Controls.Add(this.label2);
+            this.channelParametersGroupBox.Controls.Add(this.terminalModeComboBox);
             this.channelParametersGroupBox.Controls.Add(this.physicalChannelComboBox);
             this.channelParametersGroupBox.Controls.Add(this.minimumValueNumeric);
             this.channelParametersGroupBox.Controls.Add(this.maximumValueNumeric);
@@ -85,14 +89,31 @@ namespace Sparrow
             this.channelParametersGroupBox.FlatStyle = System.Windows.Forms.FlatStyle.System;
             this.channelParametersGroupBox.Location = new System.Drawing.Point(15, 12);
             this.channelParametersGroupBox.Name = "channelParametersGroupBox";
-            this.channelParametersGroupBox.Size = new System.Drawing.Size(224, 120);
+            this.channelParametersGroupBox.Size = new System.Drawing.Size(269, 151);
             this.channelParametersGroupBox.TabIndex = 3;
             this.channelParametersGroupBox.TabStop = false;
             this.channelParametersGroupBox.Text = "Channel Parameters";
             // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(16, 54);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(112, 13);
+            this.label2.TabIndex = 7;
+            this.label2.Text = "Terminal Configuration";
+            // 
+            // terminalModeComboBox
+            // 
+            this.terminalModeComboBox.FormattingEnabled = true;
+            this.terminalModeComboBox.Location = new System.Drawing.Point(161, 54);
+            this.terminalModeComboBox.Name = "terminalModeComboBox";
+            this.terminalModeComboBox.Size = new System.Drawing.Size(96, 21);
+            this.terminalModeComboBox.TabIndex = 6;
+            // 
             // physicalChannelComboBox
             // 
-            this.physicalChannelComboBox.Location = new System.Drawing.Point(120, 24);
+            this.physicalChannelComboBox.Location = new System.Drawing.Point(161, 26);
             this.physicalChannelComboBox.Name = "physicalChannelComboBox";
             this.physicalChannelComboBox.Size = new System.Drawing.Size(96, 21);
             this.physicalChannelComboBox.TabIndex = 1;
@@ -101,7 +122,7 @@ namespace Sparrow
             // minimumValueNumeric
             // 
             this.minimumValueNumeric.DecimalPlaces = 2;
-            this.minimumValueNumeric.Location = new System.Drawing.Point(120, 56);
+            this.minimumValueNumeric.Location = new System.Drawing.Point(161, 81);
             this.minimumValueNumeric.Maximum = new decimal(new int[] {
             10,
             0,
@@ -124,7 +145,7 @@ namespace Sparrow
             // maximumValueNumeric
             // 
             this.maximumValueNumeric.DecimalPlaces = 2;
-            this.maximumValueNumeric.Location = new System.Drawing.Point(120, 88);
+            this.maximumValueNumeric.Location = new System.Drawing.Point(161, 113);
             this.maximumValueNumeric.Maximum = new decimal(new int[] {
             10,
             0,
@@ -147,7 +168,7 @@ namespace Sparrow
             // maximumLabel
             // 
             this.maximumLabel.FlatStyle = System.Windows.Forms.FlatStyle.System;
-            this.maximumLabel.Location = new System.Drawing.Point(16, 88);
+            this.maximumLabel.Location = new System.Drawing.Point(16, 113);
             this.maximumLabel.Name = "maximumLabel";
             this.maximumLabel.Size = new System.Drawing.Size(112, 16);
             this.maximumLabel.TabIndex = 4;
@@ -156,7 +177,7 @@ namespace Sparrow
             // minimumLabel
             // 
             this.minimumLabel.FlatStyle = System.Windows.Forms.FlatStyle.System;
-            this.minimumLabel.Location = new System.Drawing.Point(16, 56);
+            this.minimumLabel.Location = new System.Drawing.Point(16, 81);
             this.minimumLabel.Name = "minimumLabel";
             this.minimumLabel.Size = new System.Drawing.Size(104, 15);
             this.minimumLabel.TabIndex = 2;
@@ -180,7 +201,7 @@ namespace Sparrow
             this.timingParametersGroupBox.Controls.Add(this.rateLabel);
             this.timingParametersGroupBox.Controls.Add(this.samplesPerChannelNumeric);
             this.timingParametersGroupBox.FlatStyle = System.Windows.Forms.FlatStyle.System;
-            this.timingParametersGroupBox.Location = new System.Drawing.Point(15, 138);
+            this.timingParametersGroupBox.Location = new System.Drawing.Point(15, 185);
             this.timingParametersGroupBox.Name = "timingParametersGroupBox";
             this.timingParametersGroupBox.Size = new System.Drawing.Size(269, 92);
             this.timingParametersGroupBox.TabIndex = 4;
@@ -265,7 +286,7 @@ namespace Sparrow
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.cancel_button;
-            this.ClientSize = new System.Drawing.Size(296, 294);
+            this.ClientSize = new System.Drawing.Size(296, 327);
             this.Controls.Add(this.timingParametersGroupBox);
             this.Controls.Add(this.channelParametersGroupBox);
             this.Controls.Add(this.cancel_button);
@@ -275,6 +296,7 @@ namespace Sparrow
             this.Text = "NI6251 Options";
             this.Shown += new System.EventHandler(this.NI6251_Options_Shown);
             this.channelParametersGroupBox.ResumeLayout(false);
+            this.channelParametersGroupBox.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.minimumValueNumeric)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.maximumValueNumeric)).EndInit();
             this.timingParametersGroupBox.ResumeLayout(false);
@@ -303,5 +325,7 @@ namespace Sparrow
         private System.Windows.Forms.NumericUpDown samplesPerChannelNumeric;
         private System.Windows.Forms.Label samplesPerChannelLabel;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.ComboBox terminalModeComboBox;
+        private System.Windows.Forms.Label label2;
     }
 }

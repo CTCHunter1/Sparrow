@@ -13,7 +13,8 @@ namespace Sparrow
     public partial class NI6251_Options : Form
     {
         // store the current control parameters incase of cancel
-        private int backupSelectedIndex;
+        private int backupSelectedChannelIndex;
+        private AITerminalConfiguration backupTerminalMode;
         private decimal backupMinValue;
         private decimal backupMaxValue;
         private decimal backupSamplesChannel;
@@ -23,6 +24,7 @@ namespace Sparrow
 
         private Task taskObj = null;
 
+        
         public NI6251_Options()
         {
             InitializeComponent();
@@ -31,7 +33,14 @@ namespace Sparrow
             physicalChannelComboBox.Items.AddRange(DaqSystem.Local.GetPhysicalChannels(PhysicalChannelTypes.AI, PhysicalChannelAccess.External));
             if( physicalChannelComboBox.Items.Count > 0)
                 physicalChannelComboBox.SelectedIndex = 0;
-            
+
+            // add the terminal configuration modes to it's combo box
+            terminalModeComboBox.Items.Add(AITerminalConfiguration.Differential);
+            terminalModeComboBox.Items.Add(AITerminalConfiguration.Nrse);
+            terminalModeComboBox.Items.Add(AITerminalConfiguration.Rse);
+
+            terminalModeComboBox.SelectedItem = AITerminalConfiguration.Differential;
+
             SetupDevice();
         }
 
@@ -49,7 +58,7 @@ namespace Sparrow
                 taskObj = new Task("Task 1");
 
                 // setup the channel
-                taskObj.AIChannels.CreateVoltageChannel(physicalChannelComboBox.Text, "", AITerminalConfiguration.Differential,
+                taskObj.AIChannels.CreateVoltageChannel(physicalChannelComboBox.Text, "", (AITerminalConfiguration) terminalModeComboBox.SelectedItem,
                         Convert.ToDouble(minimumValueNumeric.Value), Convert.ToDouble(maximumValueNumeric.Value), AIVoltageUnits.Volts);
 
                 if (bSingleShot == true)
@@ -81,11 +90,12 @@ namespace Sparrow
         private void NI6251_Options_Shown(object sender, EventArgs e)
         {
             // when the options dialog is shown back up the options in case of cancel
-            backupSelectedIndex = physicalChannelComboBox.SelectedIndex;
+            backupSelectedChannelIndex = physicalChannelComboBox.SelectedIndex;
             backupMinValue = minimumValueNumeric.Value;
             backupMaxValue = maximumValueNumeric.Value;
             backupSamplesChannel = samplesPerChannelNumeric.Value;
             backupRate = rateNumeric.Value;
+            backupTerminalMode = (AITerminalConfiguration) terminalModeComboBox.SelectedItem;
 
             samplesPerChannelLabel.Text = Math.Pow(2.0, Convert.ToDouble(samplesPerChannelNumeric.Value)).ToString("0");           
 
@@ -93,11 +103,12 @@ namespace Sparrow
 
         private void cancel_button_Click(object sender, EventArgs e)
         {
-            physicalChannelComboBox.SelectedIndex = backupSelectedIndex;
+            physicalChannelComboBox.SelectedIndex = backupSelectedChannelIndex;
+            terminalModeComboBox.SelectedItem = backupTerminalMode;
             minimumValueNumeric.Value = backupMinValue;
             maximumValueNumeric.Value = backupMaxValue;
             samplesPerChannelNumeric.Value = backupSamplesChannel;
-            rateNumeric.Value = backupRate;
+            rateNumeric.Value = backupRate;            
         }
 
         private void ok_button_Click(object sender, EventArgs e)

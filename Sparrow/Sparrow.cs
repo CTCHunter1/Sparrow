@@ -256,7 +256,8 @@ namespace Sparrow
         private void StopAquire()
         {
             timerObj.Stop();
-            toolStripProgressBar.Value = 0;
+            if(toolStripProgressBar != null)
+                toolStripProgressBar.Value = 0;
 
             if (aquireData == true)
             {
