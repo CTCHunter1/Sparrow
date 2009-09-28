@@ -28,9 +28,11 @@ namespace Sparrow
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Sparrow));
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.saveSingleShotToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.optionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.nI6251ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -57,7 +59,6 @@ namespace Sparrow
             this.statusStrip = new System.Windows.Forms.StatusStrip();
             this.toolStripProgressBar = new System.Windows.Forms.ToolStripProgressBar();
             this.toolStripStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
-            this.saveSingleShotToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -93,6 +94,14 @@ namespace Sparrow
             this.saveToolStripMenuItem.Size = new System.Drawing.Size(165, 22);
             this.saveToolStripMenuItem.Text = "Save";
             this.saveToolStripMenuItem.Click += new System.EventHandler(this.saveToolStripMenuItem_Click);
+            // 
+            // saveSingleShotToolStripMenuItem
+            // 
+            this.saveSingleShotToolStripMenuItem.Enabled = false;
+            this.saveSingleShotToolStripMenuItem.Name = "saveSingleShotToolStripMenuItem";
+            this.saveSingleShotToolStripMenuItem.Size = new System.Drawing.Size(165, 22);
+            this.saveSingleShotToolStripMenuItem.Text = "Save Single Shot";
+            this.saveSingleShotToolStripMenuItem.Click += new System.EventHandler(this.saveSingleShotToolStripMenuItem_Click);
             // 
             // exitToolStripMenuItem
             // 
@@ -342,14 +351,6 @@ namespace Sparrow
             this.toolStripStatusLabel.Text = "Test Text";
             this.toolStripStatusLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // saveSingleShotToolStripMenuItem
-            // 
-            this.saveSingleShotToolStripMenuItem.Enabled = false;
-            this.saveSingleShotToolStripMenuItem.Name = "saveSingleShotToolStripMenuItem";
-            this.saveSingleShotToolStripMenuItem.Size = new System.Drawing.Size(165, 22);
-            this.saveSingleShotToolStripMenuItem.Text = "Save Single Shot";
-            this.saveSingleShotToolStripMenuItem.Click += new System.EventHandler(this.saveSingleShotToolStripMenuItem_Click);
-            // 
             // Sparrow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -359,6 +360,7 @@ namespace Sparrow
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.menuStrip1);
             this.Controls.Add(this.groupBox2);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "Sparrow";
             this.Text = "Sparrow";
