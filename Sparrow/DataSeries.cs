@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 using System.Text;
+using System.IO;
 
 using MathNet.Numerics;
 using MathNet.Numerics.Transformations;
@@ -20,6 +21,7 @@ namespace Sparrow
         private double[] yAbs_f;
         private double[] yReal_f;
         private double[] yImag_f;
+        private double[] hamming_t;
         // new variables for FFT averaging
         protected bool bFFTAveraging = false;
         private double[] yRealAvg_f;
@@ -58,7 +60,27 @@ namespace Sparrow
             yImagAvg_f = new double[numPts];
             yAbsAvg_f = new double[numPts];
 
+            // read hamming filter
+            LoadHamming(new StreamReader(AppDomain.CurrentDomain.BaseDirectory + "hamming1024.csv"));
+
             UpdateFFT();
+        }
+
+        private void LoadHamming(StreamReader srObj)
+        {
+            char [] delminterChars = {','};
+
+            string strLine = srObj.ReadLine();
+            string[] values = strLine.Split(delminterChars);
+            hamming_t = new double[values.Length];
+
+            for (int n = 0; n < values.Length; n++)
+            {
+                hamming_t[n] = Convert.ToDouble(values[n]);
+            }
+
+            srObj.BaseStream.Flush();
+            srObj.Close();            
         }
 
         public DataSeries(int numPts, double sampleRate, AmpUnits fourierAmpUnits, double resistance, bool updateFFT)
@@ -228,9 +250,22 @@ namespace Sparrow
             }
         }
 
+        private double[] HammingWindowFFT(double[] Y_t)
+        {
+            // assumes all are 1024 long.
+            double[] YWindow_t = new double[Y_t.Length];
+            for (int n = 0; n < Y_t.Length; n++)
+            {
+                YWindow_t[n] = Y_t[n] * hamming_t[n];
+            }
+            return(YWindow_t);
+        }
+
         public void UpdateFFT()
         {
-            rftObj.TransformForward(Y_t, out yReal_f, out yImag_f);
+            double[] YWindow_t = HammingWindowFFT(Y_t);
+            rftObj.TransformForward(YWindow_t, out yReal_f, out yImag_f);
+            //rftObj.TransformForward(Y_t, out yReal_f, out yImag_f);
             // any math that needs to be done should just be done in this function
             yAbs_f = GetModulous(yReal_f, yImag_f);
             // TODO: Implement Phase retrevial

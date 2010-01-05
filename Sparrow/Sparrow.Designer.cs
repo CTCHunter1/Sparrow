@@ -179,10 +179,10 @@ namespace Sparrow
             this.timeGraph1.Name = "timeGraph1";
             this.timeGraph1.Size = new System.Drawing.Size(391, 275);
             this.timeGraph1.TabIndex = 4;
-            this.timeGraph1.XLim = new float[] {
+            this.timeGraph1.XLim = new double[] {
         -10F,
         10F};
-            this.timeGraph1.YLim = new float[] {
+            this.timeGraph1.YLim = new double[] {
         -10F,
         10F};
             // 
@@ -246,10 +246,10 @@ namespace Sparrow
             this.timeGraph2.Name = "timeGraph2";
             this.timeGraph2.Size = new System.Drawing.Size(390, 275);
             this.timeGraph2.TabIndex = 12;
-            this.timeGraph2.XLim = new float[] {
+            this.timeGraph2.XLim = new double[] {
         -10F,
         10F};
-            this.timeGraph2.YLim = new float[] {
+            this.timeGraph2.YLim = new double[] {
         -10F,
         10F};
             // 
@@ -318,10 +318,10 @@ namespace Sparrow
             this.freqGraph1.Name = "freqGraph1";
             this.freqGraph1.Size = new System.Drawing.Size(775, 272);
             this.freqGraph1.TabIndex = 9;
-            this.freqGraph1.XLim = new float[] {
+            this.freqGraph1.XLim = new double[] {
         -10F,
         10F};
-            this.freqGraph1.YLim = new float[] {
+            this.freqGraph1.YLim = new double[] {
         -10F,
         10F};
             // 

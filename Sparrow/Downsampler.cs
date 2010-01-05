@@ -181,6 +181,7 @@ namespace Sparrow
         {
             if (bFFTAveraging)
             {
+
                 origionalDataSeries.UpdateFFT();
                 origionalDataSeries.UpdateFFTAverage();
             }
