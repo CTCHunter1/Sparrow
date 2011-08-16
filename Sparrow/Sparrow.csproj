@@ -29,9 +29,11 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="MathNet.Iridium, Version=2008.8.16.470, Culture=neutral, PublicKeyToken=c061a3ec32cc0c6f, processorArchitecture=MSIL" />
-    <Reference Include="NationalInstruments.Common, Version=8.7.20.131, Culture=neutral, PublicKeyToken=4544464cdeaab541, processorArchitecture=MSIL" />
-    <Reference Include="NationalInstruments.DAQmx, Version=8.9.20.210, Culture=neutral, PublicKeyToken=4544464cdeaab541, processorArchitecture=x86" />
+    <Reference Include="MathNet.Iridium, Version=2008.8.16.470, Culture=neutral, PublicKeyToken=c061a3ec32cc0c6f, processorArchitecture=MSIL">
+      <HintPath>bin\Release\MathNet.Iridium.dll</HintPath>
+    </Reference>
+    <Reference Include="NationalInstruments.Common, Version=9.0.35.610, Culture=neutral, PublicKeyToken=18cbae0f9955702a, processorArchitecture=MSIL" />
+    <Reference Include="NationalInstruments.DAQmx, Version=9.3.35.219, Culture=neutral, PublicKeyToken=18cbae0f9955702a, processorArchitecture=x86" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />

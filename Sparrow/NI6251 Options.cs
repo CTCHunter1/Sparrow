@@ -8,6 +8,8 @@ using System.Windows.Forms;
 
 using NationalInstruments.DAQmx;
 
+
+
 namespace Sparrow
 {
     public partial class NI6251_Options : Form
