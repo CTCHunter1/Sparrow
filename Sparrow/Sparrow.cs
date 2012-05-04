@@ -85,7 +85,7 @@ namespace Sparrow
         private void AnalogInCallback(IAsyncResult ar)
         {
             try
-            {      
+            {
                 ch1WaveformFast = analogInReader.EndReadWaveform(ar);
                 ch1VObj.Y_t = ch1WaveformFast.GetScaledData();      // get array of doubles the values in Volts
                 

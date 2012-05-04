@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 9.00
-# Visual Studio 2005
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sparrow", "Sparrow\Sparrow.csproj", "{FD7D3DC6-DF4D-4FA8-8913-2B3D853CD7F8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GraphControl", "..\..\Libraries\GraphControl\GraphControl\GraphControl.csproj", "{B99E750E-EF0D-48B8-87A8-A09C90B35866}"
