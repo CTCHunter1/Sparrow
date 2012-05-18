@@ -55,9 +55,8 @@
     </StartupObject>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="MathNet.Iridium, Version=2008.10.17.479, Culture=neutral, PublicKeyToken=c061a3ec32cc0c6f, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Release\MathNet.Iridium.dll</HintPath>
+    <Reference Include="MathNet.Iridium">
+      <HintPath>..\..\..\..\..\..\Documents and Settings\Greg\Desktop\MathNet.Iridium-2008.10.17.479\MathNet.Iridium-2008.10.17.479\ForRedistribution\MathNet.Iridium.dll</HintPath>
     </Reference>
     <Reference Include="NationalInstruments.Common, Version=9.1.40.159, Culture=neutral, PublicKeyToken=dc6ad606294fc298, processorArchitecture=MSIL" />
     <Reference Include="NationalInstruments.DAQmx, Version=9.4.40.50, Culture=neutral, PublicKeyToken=dc6ad606294fc298, processorArchitecture=x86" />
@@ -110,7 +109,6 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
-    <None Include="app.config" />
     <None Include="DataClassDiagram.cd" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
