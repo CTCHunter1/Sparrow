@@ -30,7 +30,7 @@ namespace Sparrow
         public NI6251_Options()
         {
             InitializeComponent();
-        
+
             // Get the channels available
             physicalChannelComboBox.Items.AddRange(DaqSystem.Local.GetPhysicalChannels(PhysicalChannelTypes.AI, PhysicalChannelAccess.External));
             if( physicalChannelComboBox.Items.Count > 0)

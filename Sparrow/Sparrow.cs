@@ -66,9 +66,17 @@ namespace Sparrow
             }   
             catch (DaqException ex)
             {
-                if (ex.Error == -201003)
+                switch (ex.Error)
                 {
-                    MessageBox.Show("Error: No DAQ detected.");
+                    case -201003:
+                        MessageBox.Show("Error: No DAQ detected.");
+                        break;
+                    case -224803:
+                        MessageBox.Show("Suspect be a Ni-DAQ 9.7.5 Windows 8.1 and Greater Compatiblity Error\r\n" + ex.Message);
+                        break;
+                    default:
+                        MessageBox.Show(ex.Message);
+                        break;
                 }
             }
             catch (Exception ex1)
