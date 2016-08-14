@@ -2,7 +2,7 @@
 
 Sparrow is a downsampling power spectral desnsity analyzer written in C# currently complied against the .NET 4.0 framework. 
 
-Latest changes make compiling work in Visual Studio Community 2015 (14.0.25425.01 Update 3). Downloadable for free in DreamSpark as us August 13, 2015. 
+Latest changes make compiling work in Visual Studio Community 2015 (14.0.25425.01 Update 3). Downloadable for free in DreamSpark as of August 13, 2015. 
 
 This version depends on NI-DAQ 9.7.5f1. NI states newer versions of NI-DAQ will remain backwards compatible. Compilations of against newer Ni-DAQ dlls will not run on systems running older Ni-DAQ drivers.   
 
