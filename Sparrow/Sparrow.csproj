@@ -55,11 +55,22 @@
     </StartupObject>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="MathNet.Iridium">
-      <HintPath>..\..\..\..\..\..\Documents and Settings\Greg\Desktop\MathNet.Iridium-2008.10.17.479\MathNet.Iridium-2008.10.17.479\ForRedistribution\MathNet.Iridium.dll</HintPath>
+    <Reference Include="GraphControl, Version=1.0.4521.18338, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>External References\GraphControl.dll</HintPath>
     </Reference>
-    <Reference Include="NationalInstruments.Common, Version=9.1.40.159, Culture=neutral, PublicKeyToken=dc6ad606294fc298, processorArchitecture=MSIL" />
-    <Reference Include="NationalInstruments.DAQmx, Version=9.4.40.50, Culture=neutral, PublicKeyToken=dc6ad606294fc298, processorArchitecture=x86" />
+    <Reference Include="MathNet.Iridium, Version=2008.3.12.405, Culture=neutral, PublicKeyToken=c061a3ec32cc0c6f, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>External References\MathNet.Iridium.dll</HintPath>
+    </Reference>
+    <Reference Include="NationalInstruments.Common, Version=13.0.40.190, Culture=neutral, PublicKeyToken=dc6ad606294fc298, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>External References\NI\MeasurementStudioVS2010\DotNET\Assemblies\13.0.40.190\NationalInstruments.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="NationalInstruments.DAQmx, Version=9.6.40.292, Culture=neutral, PublicKeyToken=dc6ad606294fc298, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>External References\NI\MeasurementStudioVS2010\DotNET\Assemblies (64-bit)\9.6.40.292\NationalInstruments.DAQmx.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
@@ -145,12 +156,6 @@
       <ProductName>Windows Installer 3.1</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Libraries\GraphControl\GraphControl\GraphControl.csproj">
-      <Project>{B99E750E-EF0D-48B8-87A8-A09C90B35866}</Project>
-      <Name>GraphControl</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
